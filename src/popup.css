@@ -1,0 +1,24 @@
+html, body {
+    width: 400px;
+    height: 500px;
+}
+
+.button {
+    margin-top:25% auto;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.sharingan-disabled {
+    background-color: blue;
+}
+
+.sharingan-enabled {   
+    background-color: red;
+}
+
+.sharingan-unavailable {
+    background-color: silver;
+}

@@ -1,5 +1,5 @@
 const path = require('path');
-const SizePlugin = require('size-plugin');
+//const SizePlugin = require('size-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -7,8 +7,13 @@ module.exports = {
 	devtool: 'source-map',
 	stats: 'errors-only',
 	entry: {
-		background: './source/background',
-		options: './source/options'
+		backgroundHelperFunctions: './src/backgroundHelperFunctions',
+		backgroundPopupState: './src/backgroundPopupState',
+		backgroundSubtitlesFetcher: './src/backgroundSubtitlesFetcher',
+		contentScriptSubtitlesSelector: './src/contentScriptSubtitlesSelector',
+		popup: './src/popup',
+		options: './src/options'
+
 	},
 	output: {
 		path: path.join(__dirname, 'dist'),
@@ -16,16 +21,16 @@ module.exports = {
 	},
 	resolve: {
 		modules: [
-			path.resolve('./source'),
+			path.resolve('./src'),
 			path.resolve('./node_modules')
 		]
 	},
 	plugins: [
-		new SizePlugin(),
+		//new SizePlugin(),
 		new CopyWebpackPlugin(
 			{
 				patterns: [
-					{ from: "source" },
+					{ from: "src" },
 					{ from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js' }
 				],
 			},
