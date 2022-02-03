@@ -3,7 +3,7 @@ html, body {
     height: 500px;
 }
 
-.button {
+.sharingan-button {
     margin-top:25% auto;
     padding: 5px;
     text-align: center;
@@ -21,4 +21,13 @@ html, body {
 
 .sharingan-unavailable {
     background-color: silver;
+}
+
+.playback-test-button {
+    margin-top:25% auto;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.5em;
+    cursor: pointer;
+    background-color: aqua;
 }

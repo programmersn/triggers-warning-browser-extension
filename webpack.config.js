@@ -1,5 +1,4 @@
 const path = require('path');
-//const SizePlugin = require('size-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -7,15 +6,16 @@ module.exports = {
 	devtool: 'source-map',
 	stats: 'errors-only',
 	entry: {
-		backgroundHelperFunctions: './src/backgroundHelperFunctions',
 		backgroundPopupState: './src/backgroundPopupState',
 		backgroundSubtitlesFetcher: './src/backgroundSubtitlesFetcher',
-		contentScriptSubtitlesSelector: './src/contentScriptSubtitlesSelector',
 		popup: './src/popup',
 		options: './src/options'
 
 	},
 	output: {
+		// @todo Find a way to replicate as output in dist directory the tree structure of src 
+		// directory (made out of folders popup, background, options ect ...) to better organize the 
+		// code
 		path: path.join(__dirname, 'dist'),
 		filename: '[name].js'
 	},
@@ -26,7 +26,6 @@ module.exports = {
 		]
 	},
 	plugins: [
-		//new SizePlugin(),
 		new CopyWebpackPlugin(
 			{
 				patterns: [

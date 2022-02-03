@@ -1,11 +1,6 @@
 /**
- *
- * @file backgroundPopupState.js
- * 
  * @fileoverview Background script for the extension's popup.
- * 
  * @description Implements long-term logic for the extension's popup.
- * 
  */
 
 /**
@@ -17,10 +12,11 @@
  * @example Example of popup saved state :
  * <tab_id>: {
  *      "url" : <url>
- *      "sharingan": <"unavailable"|"disabled|"enabled">
+ *      "sharingan": <"sharingan-unavailable" | "sharingan-disabled" | "sharingan-enabled">
  *  }
  * @note This first implementation of popup state saving mechanism uses Javascript Objects. Later
  * implementations could change that to more sophisticated and performant data structures as Map.
+ * @note Consider the idea whether to turn popupStates into a class and keep popupState as object.
 ****************************************************************************************************
 */
 var popupStates = {};
@@ -53,7 +49,7 @@ function handleReceivedMessages(request, sender, sendResponse) {
             `${sender.tab.url})`);
     } else {
         // tofix: sender.url undefined in chrome for extension pages
-        console.log(`From extension (source=${request.senderName} at url=${sender.url}`);   
+        console.log(`From extension (source=${request.senderName} at url=${sender.url})`);   
     }
 
     if ("fetchPopupState" === request.command) {
@@ -115,5 +111,9 @@ function removePopupState(tabId) {
 console.log("Entering backgroundPopupState script ...");
 
 browser.runtime.onMessage.addListener(handleReceivedMessages);
-
 browser.tabs.onRemoved.addListener(removePopupState);
+
+// @todo: Find a safer/more elegant way of exposing popupStates as global variable
+//        Maybe extract popupState as a class in a module of its own, and expose a public getter
+//        to access popupStates object
+window.popupStates = popupStates

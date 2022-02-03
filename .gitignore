@@ -1,5 +1,5 @@
 node_modules
 distribution
-browsers-extensions.code-workspace
+*.code-workspace
 size-plugin.json
 dist

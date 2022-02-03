@@ -9,10 +9,18 @@
 
 <body>
     <div id="popup-content">
-        <div id="header">
-            <p> Salamu 'aleikum </p>
+        <div id="sharingan">
+            <p> Sharingan section </p>
+            <div id="toggle-sharingan-button" class="sharingan-button sharingan-disabled">Sharingan</div>
         </div>
-        <div id="toggle-sharingan-button" class="button sharingan-disabled">Sharingan</div>
+
+        <form id="report-form">
+            <p>Report sensitive segment</p>
+            <input type="text" id="start-time" class="start-time" placeholder="hh:mm:ss"/>
+            <input type="text" id="end-time" class="end-time" placeholder="hh:mm:ss"/>
+            <button type="submit" id="submit-report" class="submit-report">Report</button>
+        </form>
+
     </div>
 
     <script type="application/javascript" src="/browser-polyfill.min.js"></script>

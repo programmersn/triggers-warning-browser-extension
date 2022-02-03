@@ -12,6 +12,7 @@
 		"tabs",
 		"activeTab",
 		"storage",
+		"webNavigation",
 		"webRequest",
 		"webRequestBlocking",
 		"*://*/?o=*"
@@ -25,8 +26,7 @@
 		"scripts": [
 			"/browser-polyfill.min.js",
 			"/backgroundPopupState.js",
-			"/backgroundHelperFunctions.js",
-			"/backgroundSubtitlesFetcher.js"	
+			"/backgroundSubtitlesFetcher.js"
 		]
 	},
 	"browser_action": {
