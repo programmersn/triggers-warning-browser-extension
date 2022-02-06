@@ -10,7 +10,6 @@ module.exports = {
 		backgroundSubtitlesFetcher: './src/backgroundSubtitlesFetcher',
 		popup: './src/popup',
 		options: './src/options'
-
 	},
 	output: {
 		// @todo Find a way to replicate as output in dist directory the tree structure of src 
@@ -30,7 +29,8 @@ module.exports = {
 			{
 				patterns: [
 					{ from: "src" },
-					{ from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js' }
+					{ from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js' },
+					{ from: 'node_modules/dompurify/dist/purify.min.js'}
 				],
 			},
 		)

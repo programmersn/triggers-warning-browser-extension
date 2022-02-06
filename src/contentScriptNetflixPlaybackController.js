@@ -143,6 +143,7 @@ class PlaybackController {
     }
 
     /**
+    ************************************************************************************************
      * @summary Compute a likely approximation of the margin of error corresonding to the 
      * timestamp, derived empirically from playback testing.
      * @description player.seek() function is not deterministic, it jumps to a timestamp slightly 
@@ -156,6 +157,7 @@ class PlaybackController {
      * @todo Refine the error margins and make them more accurate by more intensive testing
      * @todo Turn into a private method when full support for private class features is rolled out
      * in ECMA std.
+    ************************************************************************************************
      */
     static computeErrorMargin(endTime) {
         try {
@@ -256,8 +258,8 @@ class PlaybackController {
                         var startTime = ${startTime};
                         var endTime = ${endTime};
                         var errorMargin = ${errorMargin}
-                        console.log('%c' + \`Setting timeout to skip segment (\${startTime}, \${endTime}). Error margin for this range: \${errorMargin} \`, "color:green;font-weight:bold");
-                        timeoutID = setTimeout(
+                        console.log('%c' + \`Setting timeout to skip segment (\${startTime}, \${endTime}). Error margin for this range: \${100*errorMargin} %\`, "color:green;font-weight:bold");
+                        setTimeout(
                             async function skipSegment() {
                                 ${PlaybackController._playerHandlesDecl};
                                 var currTimestamp = player.getCurrentTime();
@@ -266,7 +268,7 @@ class PlaybackController {
                                     console.log('%c' + "Reached start time for a segment. Skipping ...", "color:red;font-weight:bold;font-style:italic");
                                     player.seek(endTime + endTime*errorMargin);
                                     console.log('%c' + \`Seek jumped at \${player.getCurrentTime()}\`, "color:red;font-weight:bold;font-style:italic");
-                                    console.log('%c' + \`Skipped \${player.getCurrentTime() - endTime} ms ahead of endTime, so errorMargin = \${100*(player.getCurrentTime()-endTime)/endTime}%\`, "color:red;font-weight:bold;font-style:italic");
+                                    console.log('%c' + \`Skipped \${player.getCurrentTime() - endTime} ms ahead of endTime, so errorMargin = \${100*(player.getCurrentTime()-endTime)/endTime} %\`, "color:red;font-weight:bold;font-style:italic");
                                 }
                                 setTimeout(skipSegment, 500);
                             },

@@ -1,6 +1,7 @@
 /**
- * @fileoverview Background script for the extension's popup.
- * @description Implements long-term logic for the extension's popup.
+ * @fileoverview Background script for the extension's popup state storage.
+ * @description Implements local per-session database to store popup's states.
+ * @see popupStateAPI.js for the API to acces this database.
  */
 
 /**

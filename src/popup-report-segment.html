@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup-report-segment.css" />
+</head>
+
+<body>
+    <a href="popup.html">
+        <button id="back-button" class="back-button" type="button">
+            Back to main page
+        </button>
+    </a>
+
+    <div id="popup-report-segment-content">
+        <!-- Build following section dynamically from a up-to-date list of categories -->
+        <div id="segment-categories">
+            <p>
+                Pease check the sensitive categories the scene falls into<br>
+
+                <input type="checkbox" id="alcohol-drug" value="Alcohol/Drug">
+                <label for="alcohol-drug"> Alcohol/Drug </label><br>
+
+                <input type="checkbox" id="animal-abuse" value="Animal Abuse">
+                <label for="animal-abuse"> Animal Abuse </label><br>
+
+                <input type="checkbox" id="depression-suicide" value="Depression/Suicide">
+                <label for="depression-suicide"> Depression/Suicide </label><br>
+
+                <input type="checkbox" id="descriminiation-against-minority-groups"
+                    value="Discrimination Against Minority Groups">
+                <label for="Discrimination against minority groups"> Discrimination Against Minority Groups </label><br>
+
+                <input type="checkbox" id="excessive-gratuitus-violence" value="Excessive/Gratuitus Violence">
+                <label for="excessive-gratuitus-violence"> Excessive/Gratuitus Violence </label><br>
+
+                <input type="checkbox" id="nudity-sex" value="Nudity/Sex">
+                <label for="nudity-sex"> Nudity/Sex </label><br>
+
+                <input type="checkbox" id="rape-sexual-assault" value="Rape/Sexual Assault">
+                <label for="rape-sexual-assault"> Rape/Sexual Assault </label><br>
+
+                <input type="checkbox" id="self-harm" value="Self Harm">
+                <label for="self-harm"> Self-Harm </label><br>
+
+                <input type="checkbox" id="torture" value="Torture">
+                <label for="torture"> Torture </label><br>
+
+                <input type="checkbox" id="war-scene" value="War Scene">
+                <label for="war-scene"> War Scene </label><br>
+            </p>
+        </div>
+
+        <form id="report-form">
+            <p>Type in start and end times of the scence</p>
+            <input type="text" id="start-time" class="start-time" placeholder="hh:mm:ss" />
+            <input type="text" id="end-time" class="end-time" placeholder="hh:mm:ss" />
+            <button type="submit" id="submit-report" class="submit-report">Report</button>
+        </form>
+    </div>
+
+    <script type="application/javascript" src="/browser-polyfill.min.js"></script>
+    <script type="application/javascript" src="/popup-report-segment.js"></script>
+</body>
+
+</html>
