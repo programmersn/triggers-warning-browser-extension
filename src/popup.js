@@ -6,6 +6,7 @@
  *         - 'popup state' is the aggregation of the states of all logical elements of the popup.
  */
 
+import { manifest } from 'webextension-polyfill';
 import * as popupStateAPI from './popupStateAPI.js';
 
 /*
@@ -19,7 +20,7 @@ import * as popupStateAPI from './popupStateAPI.js';
  * @summary Initializes the popup UI.
  * @description Initializes the popup user interface depending on whether the popup state has an 
  * existing saved state on the underlying tab or not.
- * @param { Tab } currTab Object holding metadata about tab on which the popup is openeds.
+ * @param { Tab } currTab Object holding metadata about tab on which the popup is opened.
  * @param { object } popupState The state of the current popup.
 **************************************************************************************************** 
  */
@@ -159,21 +160,76 @@ function isSupportedStreamingContent(currTab) {
  * of content script/embedded code.
 ****************************************************************************************************
  */
-async function enableSharingan(currTab) {
-    console.log("Entering enableSharingan() ...");
+async function prepareSharingan(currTab) {
+    console.log("Entering popup.js::prepareSharingan() ...");
 
     try {
-        updateSharinganButton("sharingan-enabled");
+        //updateSharinganButton("sharingan-enabled");
         // Has to be injected alongside any content script to make the content script compatible 
         // with Chrome with regards to WebExtension API   
         await browser.tabs.executeScript({ file: "/browser-polyfill.min.js" });
         await browser.tabs.executeScript({ file: "/contentScriptNetflixPlaybackController.js" });
 
-        popupStateAPI.savePopupState(currTab);
+        //popupStateAPI.savePopupState(currTab);
         checkContentScriptsHeartbeat(currTab);     // uncomment when a content script exists
     } catch (error) {
-        console.log(`popup.js::enableSharingan(): error : ${error.message}`);
+        console.log(`popup.js::prepareSharingan(): error : ${error.message}`);
     }
+}
+
+async function getSegmentListFromDB(url) {
+    console.log("Entering getSegmentListFromDB() ...");
+
+    return new Promise(function (resolve) {
+        var segmentsList;
+
+        const dbName = "untrigDB";
+
+        var openingRequest = indexedDB.open(dbName, 3);
+
+        openingRequest.onsuccess = function () {
+            var db = openingRequest.result;
+            var tx = db.transaction("segments", "readwrite");
+            var store = tx.objectStore("segments");
+
+            // Query the segment from content url
+            var getAllSegmentsQuery = store.getAll();
+
+            getAllSegmentsQuery.onsuccess = function (event) {
+                segmentsList = getAllSegmentsQuery.result;
+                console.log(`Successfully queried database for segments associated with contentID :`, segmentsList);
+                console.log("Leaving getSegmentListFromDB() and returning segments=", segmentsList);
+                return resolve(segmentsList);
+            };
+
+            tx.oncomplete = function () {
+                db.close();
+            };
+        }
+    });
+}
+
+async function enableSharingan(currTab) {
+    console.log("Entering popup.js::enableSharingan() ...");
+    updateSharinganButton("sharingan-enabled");
+
+    var segmentsList = await getSegmentListFromDB(currTab.url);
+    console.log('%c' + `Sending enableSharingan command to content script in tab=${currTab.id}`, "color:green;font-weight:bold", segmentsList);
+    browser.tabs.sendMessage(
+        currTab.id,
+        {
+            command: "enableSharingan",
+            segments: segmentsList,
+            senderName: "popup.js"
+        }
+    ).then(response => {
+        console.log('%c' + "response from:" + `${response.receiverName}, ` +
+            `message: ${response.message}, result:${response.result}`, "color:green;font-weight:bold");
+    }).catch(error => {
+        console.log('%c' + `report-form submit callback: error : ${error.message}`, "color:green;font-weight:bold");
+    });
+
+    popupStateAPI.savePopupState(currTab);
 }
 
 /**
@@ -304,11 +360,13 @@ gettingTabs.then(tabs => {
 
     console.log("Managing popupState for current tab ...");
 
-    const fetchingPopupState = popupStateAPI.fetchPopupState(currTab.id);
+    prepareSharingan(currTab).then(() => {
+        const fetchingPopupState = popupStateAPI.fetchPopupState(currTab.id);
 
-    fetchingPopupState.then(popupState => initPopupUI(currTab, popupState));
+        fetchingPopupState.then(popupState => initPopupUI(currTab, popupState));
 
-    addListenersToPopup(currTab);
+        addListenersToPopup(currTab);
+    });
 
 }).catch(error => {
     console.log(`error : ${error.message}`);
