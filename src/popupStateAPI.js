@@ -27,39 +27,6 @@
 */
 
 /**
-****************************************************************************************************
- * @summary Fetch popup state for a certain tab.
- * @description Make a request through sendMessage API to the background script holding popup state
- * objects in order to fetch the popup state matching the id of the underlying tab.
- * @param { Number } tabId Identifier of the tab to fetch the popup state for.
- * @returns { object } Popup state of the tab having `tabId` as identifier.
-**************************************************************************************************** 
- */
-export async function fetchPopupState(tabId) {
-    console.log("Entering fetchPopupState() ...");
-
-    try {
-        let response = await browser.runtime.sendMessage(
-            {
-                command: "fetchPopupState",
-                tabId: tabId,
-                senderName: "popup.js"
-            }
-        );
-
-        console.log(`Response from : '${response.receiverName}': popupState=`, response.popupState);
-        let popupState = response.popupState;
-
-        if (undefined === popupState)
-            popupState = null;
-
-        return popupState;
-    } catch (error) {
-        console.log(`error : ${error.message}`);
-    }
-}
-
-/**
 **************************************************************************************************** 
  * @summary Save current popup state.
  * @description Save the popup state into the background script through use of sendMessage API.
@@ -90,13 +57,46 @@ export function savePopupState(currTab) {
 
 /**
 ****************************************************************************************************
+ * @summary Fetch popup state for a certain tab.
+ * @description Make a request through sendMessage API to the background script holding popup state
+ * objects in order to fetch the popup state matching the id of the underlying tab.
+ * @param { Number } tabId Identifier of the tab to fetch the popup state for.
+ * @returns { object } Popup state of the tab having `tabId` as identifier.
+**************************************************************************************************** 
+ */
+export async function fetchPopupState(tabId) {
+    console.log("Entering popupStateAPI.js::fetchPopupState() ...");
+
+    try {
+        let response = await browser.runtime.sendMessage(
+            {
+                command: "fetchPopupState",
+                tabId: tabId,
+                senderName: "popup.js"
+            }
+        );
+
+        console.log(`Response from : '${response.receiverName}': popupState=`, response.popupState);
+        let popupState = response.popupState;
+
+        if (undefined === popupState)
+            popupState = null;
+
+        return popupState;
+    } catch (error) {
+        console.log(`popupStateAPI.js::fetchPopupState()::error : ${error.message}`);
+    }
+}
+
+/**
+****************************************************************************************************
  * @summary Get current sharingan state.
  * @description Get the sharingan state pertaining to the underlying active tab.
  * Sharingan state is extracted from the html interface of the popup UI's sharingan button.
  * @returns { String } String object describing sharingan state.
 ****************************************************************************************************
  */
-export function getSharinganState() {
+function getSharinganState() {
     console.log("Entering getSharinganState ...");
     const listSharinganClasses = document.querySelector("#toggle-sharingan-button").classList;
     const len = listSharinganClasses.length;
@@ -112,7 +112,7 @@ export function getSharinganState() {
  * @returns Boolean indicating whether sharingan is enabled
 ****************************************************************************************************
  */
-export function isSharinganEnabled() {
+function isSharinganEnabled() {
     console.log("Entering isSharinganEnabled() ...");
 
     return "sharingan-enabled" === getSharinganState();

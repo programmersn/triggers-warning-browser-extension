@@ -33,13 +33,7 @@ var popupStates = {};
  * @param { CallableFunction } sendResponse Callback that can be used to synchronously respond to
  * the request.
  * @returns { Promise } Appropriate response to send back asynchronously.
- * @todo Try out implementing message handler in another background script, to make sure whether
- * message reception can be deterministically predicted to be handled by one or another background
- * script. 
- * This issue might be avoided if messaging system is connection-based, whereby connection to each 
- * script is identified by its port, allowing for the effective handling of multiple connections 
- * without intermingling messages between receiving scripts.
-****************************************************************************************************
+ ****************************************************************************************************
  */
 function handleReceivedMessages(request, sender, sendResponse) {
     console.log("Entering handleReceivedMessages : ");
@@ -81,7 +75,7 @@ function handleReceivedMessages(request, sender, sendResponse) {
                 message: "Popup state saved"
             }
         );
-    }
+    } 
 }
 
 /**
@@ -113,8 +107,3 @@ console.log("Entering backgroundPopupState script ...");
 
 browser.runtime.onMessage.addListener(handleReceivedMessages);
 browser.tabs.onRemoved.addListener(removePopupState);
-
-// @todo: Find a safer/more elegant way of exposing popupStates as global variable
-//        Maybe extract popupState as a class in a module of its own, and expose a public getter
-//        to access popupStates object
-window.popupStates = popupStates

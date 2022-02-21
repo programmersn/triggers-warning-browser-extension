@@ -2,7 +2,6 @@
 	"name": "Untrig",
 	"version": "0.0.0",
 	"description": "Makes watching streaming content relaxing, soothing and enjoyable again !",
-	"homepage_url": "https://gitlab.com/theelite/trigger-warnings/frontend-components/browsers-extensions",
 	"manifest_version": 2,
 	"minimum_chrome_version": "74",
 	"icons": {
@@ -26,7 +25,8 @@
 		"scripts": [
 			"/browser-polyfill.min.js",
 			"/backgroundPopupState.js",
-			"/backgroundSubtitlesFetcher.js"
+			"/backgroundSubtitlesFetcher.js",
+			"backgroundContentMetadata.js"
 		]
 	},
 	"browser_action": {
@@ -37,5 +37,12 @@
 		},
 		"default_title": "Untrig",
 		"default_popup": "/popup.html"
-	}
+	},
+	
+	"browser_specific_settings": {
+		"gecko": {
+		  "id": "addon@example.com"
+		}
+	  }
+	
 }

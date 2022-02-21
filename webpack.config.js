@@ -8,6 +8,7 @@ module.exports = {
 	entry: {
 		backgroundPopupState: './src/backgroundPopupState',
 		backgroundSubtitlesFetcher: './src/backgroundSubtitlesFetcher',
+		backgroundContentMetadata: 'backgroundContentMetadata.js',
 		popup: './src/popup',
 		options: './src/options'
 	},

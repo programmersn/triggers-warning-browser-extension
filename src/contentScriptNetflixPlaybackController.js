@@ -12,31 +12,34 @@
         console.log("Entering contentScriptNetflixPlaybackController script ...");
 
         /*
-        ====================================================================================================
+        ============================================================================================
                                         P L A Y B A C K   C O N T R O L L E R
-        ====================================================================================================
+        ============================================================================================
         */
 
         /**
-        ****************************************************************************************************
+        ********************************************************************************************
          * @summary Interface to control Netflix video streaming playback
-         * @description Reverse engineered interface that gives handles into a subset of the frontend 
-         * internal Netflix video streaming API, allowing for fine-grained control over the video playback.
-         * @note Netflix internal frontend video playback API is built over HTML5 video streaming API
-         * @note Cannot extract this class in a module of its own and import it here as it's not supported
-         * by browsers. Maybe there is a way to do it but didn't find it.
-        ****************************************************************************************************
+         * @description Reverse engineered interface that gives handles into a subset of the 
+         * frontend internal Netflix video streaming API, allowing for fine-grained control over the
+         * video playback.
+         * @note Netflix internal frontend video playback API is built over HTML5 video streaming 
+         * API
+         * @note Cannot extract this class in a module of its own and import it here as it's not 
+         * supported by browsers. Maybe there is a way to do it but didn't find it.
+        ********************************************************************************************
          */
         class PlaybackController {
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Declares basic handles over API Netflix uses to render streaming content
-             * @description Declares and defines variables to control Netflix's video stream 
-             * programmatically into Netflix streaming webpage's namespace.
+             * @description Declares and defines variables to inject as embedded code into Netflix 
+             * streaming webpage's namespace. in  order to control Netflix's video stream  
+             * programmatically.
              * @see https://stackoverflow.com/questions/42105028/netflix-video-player-in-chrome-how-to-seek
              * @see https://stackoverflow.com/questions/42679738/simulate-click-on-change-value-of-arias-netflix-slider-programatically
-            ************************************************************************************************
+            ****************************************************************************************
              */
             static _playerHandlesDecl =
                 `
@@ -45,12 +48,12 @@
                 `;
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Inject javascript code as embedded code into webpage's DOM content
              * @param { String } embeddedCode Code to inject and execute
-             * @todo Turn into a private method when full support for private class features is rolled out
-             * in ECMA std.
-            ************************************************************************************************
+             * @todo Turn into a private method when full support for private class features is 
+             * rolled out in ECMA std.
+            ****************************************************************************************
              */
             static injectEmbeddedCode(embeddedCode) {
                 try {
@@ -61,18 +64,18 @@
                     (document.head || document.documentElement).appendChild(script);
                     script.remove();
                 } catch (error) {
-                    console.log(`contentScriptNetlixPlaybackController::Playback.injectEmbeddedCode() error: ${error.message}`);
+                    console.log('%c' + `contentScriptNetlixPlaybackController::Playback.injectEmbeddedCode() error: ${error.message}`, "color:red;font-weight:bold");
                 }
 
             }
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Gets the duration of the played video.
-             * @description Uses custom event to collect return value from NEtflix's internal API and send
-             * it over to the content script.
+             * @description Uses custom event to collect return value from NEtflix's internal API 
+             * and send it over to the content script.
              * @returns { Number } Duration of the played video (unit: milliseconds)
-            ************************************************************************************************
+            ****************************************************************************************
              */
             static getDuration() {
                 console.log("Entering contenScriptNetflixPlaybackController::Playback.getDuration() ...");
@@ -80,19 +83,19 @@
                 try {
                     var embeddedCode =
                         `
-                (function() {
-                    try { 
-                        ${PlaybackController._playerHandlesDecl};
-                        var duration = player.getDuration();
-                        var event = new CustomEvent("getDurationEvent", { detail: { duration: duration } });
-                        console.log('%c'+ "Created custom event:", "color:green;font-weight:bold", event);
-                        window.dispatchEvent(event);
-                        console.log('%c'+ "Dispatched event", "color:green;font-weight:bold");
-                    } catch (error) { 
-                        console.log(\`seek embedded code error: \${error.message}\`);
-                    }
-                })();                
-                `;
+                        (function() {
+                            try { 
+                                ${PlaybackController._playerHandlesDecl};
+                                var duration = player.getDuration();
+                                var event = new CustomEvent("getDurationEvent", { detail: { duration: duration } });
+                                console.log('%c'+ "Created custom event:", "color:green;font-weight:bold", event);
+                                window.dispatchEvent(event);
+                                console.log('%c'+ "Dispatched event", "color:green;font-weight:bold");
+                            } catch (error) { 
+                                console.log('%c' + \`getDuration() embedded code error: \${error.message}\`, "color:red;font-weight:bold");
+                            }
+                        })();                
+                        `;
 
                     var result;
                     console.log('%c' + "Adding listener to custom getDuration() result event", "color:green;font-weight:bold");
@@ -108,21 +111,20 @@
 
                     return result;
                 } catch (error) {
-                    console.log(`contenScriptNetflixPlaybackController::Playback.getDuration() error: ${error.message}`);
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.getDuration() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Jump the scrubber/slider of the video to the indicated position.
-             * @description Inject into the webpage's header the embedded code using Netflix API to seek
-             * to the indicated position
-             * @param { Number } timestamp Timestamp to reach in the video (unit: )
-             * @returns 
-            ************************************************************************************************
+             * @description Inject into the webpage's header the embedded code using Netflix API to 
+             * seek to the indicated position
+             * @param { Number } timestamp Timestamp to reach in the video (unit: milliseconds)
+            ****************************************************************************************
              */
             static seek(timestamp) {
-                console.log("Entering contenScriptNetflixPlaybackController::Playback.seek() ...");
+                console.log("Entering contenScriptNetflixPlaybackController.js::Playback.seek() ...");
 
                 try {
                     if (timestamp <= 0 || timestamp > PlaybackController.getDuration()) {
@@ -131,40 +133,38 @@
 
                     var embeddedCode =
                         `
-                (function() {
-                    try {
-                        ${PlaybackController._playerHandlesDecl};
-                        player.seek(${timestamp});
-                    } catch (error) {
-                        console.log(\`seek embedded code error: \${error.message}\`);
-                    }
-                })();                
-                `;
+                        (function() {
+                            try {
+                                ${PlaybackController._playerHandlesDecl};
+                                player.seek(${timestamp});
+                            } catch (error) {
+                                console.log(\`seek embedded code error: \${error.message}\`);
+                            }
+                        })();                
+                        `;
 
                     PlaybackController.injectEmbeddedCode(embeddedCode);
-
-                    return result;
                 } catch (error) {
-                    console.log(`contenScriptNetflixPlaybackController::Playback.seek() error: ${error.message}`);
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.seek() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Compute a likely approximation of the margin of error corresonding to the 
              * timestamp, derived empirically from playback testing.
-             * @description player.seek() function is not deterministic, it jumps to a timestamp slightly 
-             * lesser than the one requested. To avoid playback to get stuck in a loop, a margin of error 
-             * is taken into account, computed based on these observations : 
+             * @description player.seek() function is not deterministic, it jumps to a timestamp 
+             * slightly lesser than the one requested. To avoid playback to get stuck in a loop, a 
+             * margin of error is taken into account, computed based on these observations : 
              *  - The smaller the endTime, the bigger the margin of error.
              *  - The bigger the endTime, the smaller the margin of error.
              * Maybe a better solution exist out there to fix it in a deterministic manner.
-             * @param { Number } endTime Timestamp
+             * @param { Number } endTime Timestamp of the end of the segment to be skipped.
              * @returns Margin of error
              * @todo Refine the error margins and make them more accurate by more intensive testing
-             * @todo Turn into a private method when full support for private class features is rolled out
-             * in ECMA std.
-            ************************************************************************************************
+             * @todo Turn into a private method when full support for private class features is
+             *  rolled out in ECMA std.
+            ****************************************************************************************
              */
             static computeErrorMargin(endTime) {
                 try {
@@ -228,25 +228,25 @@
                         return 0.001;
                     }
                 } catch (error) {
-                    console.log(`contenScriptNetflixPlaybackController::Playback.computeErrorMargin() error: ${error.message}`);
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.computeErrorMargin() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
 
             /**
-            ************************************************************************************************
+            ****************************************************************************************
              * @summary Prepares the playback so as to skip the indicated sensitive segment
              * @description Sets a timeout callback (polling function)
              * @param { Number } startTime Segment start time
              * @param { Number } endTime Segment end time
-             * @note Does leaving the timeout on introduce any latency/lag in the player ? So long as 
-             * the skipSegment() callback doesn't use console.log, no such latency is noticed.
+             * @note Does leaving the timeout on introduce any latency/lag in the player ? So long 
+             * as the skipSegment() callback doesn't use console.log, no such latency is noticed.
              * @todo Check whether that segment has already been set to be skipped.
-             * @todo In catch section, in case of error, create CustomEvent object with error message to
-             * transmit to the content script and handle the error appropriately.
+             * @todo In catch section, in case of error, create CustomEvent object with error 
+             * message to transmit to the content script and handle the error appropriately.
              * @todo Send the timeout ID via CustomEvent to be stored in a class variable array with
              * other timeout IDs. These timeout IDs will be used to disable sharingan by deleting
              * all timeouts.
-            ************************************************************************************************
+            ****************************************************************************************
              */
             static setSegmentToSkip(startTime, endTime) {
                 try {
@@ -295,30 +295,86 @@
 
                     PlaybackController.injectEmbeddedCode(embeddedCode);
                 } catch (error) {
-                    console.log(`contenScriptNetflixPlaybackController::Playback.setSegmentToSkip() error: ${error.message}`);
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.setSegmentToSkip() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
 
+            /**
+            ****************************************************************************************
+             * @description Enable sharingan (skipping of sensitive segments) by injecting embedded
+             * code for each sensitive segment.
+             * @param { Array } segments List of segments to skip.
+            ****************************************************************************************
+             */
             static enableSharingan(segments) {
                 console.log("Entering contentScriptNetflixPlaybackController::enableSharingan() ...");
 
-                console.log(`Injecting timeouts to skip segments :`, segments);
+                try {
+                    console.log(`Injecting timeouts to skip segments :`, segments);
 
-                for (const segment of segments) {
-                    console.log("Injecting segment", segment);
-                    PlaybackController.setSegmentToSkip(segment.timestamps.startTime, segment.timestamps.endTime);
+                    for (const segment of segments) {
+                        console.log("Injecting segment", segment);
+                        PlaybackController.setSegmentToSkip(segment.timestamps.startTime, segment.timestamps.endTime);
+                    }
+                } catch (error) {
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.enableSharingan() error: ${error.message}`, "color:red;font-weight:bold");
+                }
+            }
+
+            /**
+            ****************************************************************************************
+            * @description Retrieve the ID fo the Netflix video content playing in the current 
+            * webpage
+            * @return Netflix ID of the current video content
+            ****************************************************************************************
+             */
+            static getContentId() {
+                console.log("Entering contenScriptNetflixPlaybackController::Playback.getContentId() ...");
+
+                try {
+                    var embeddedCode =
+                        `
+                        (function() {
+                            try { 
+                                ${PlaybackController._playerHandlesDecl};
+                                var movieId = player.getMovieId();
+                                var event = new CustomEvent("getMovieIdEvent", { detail: { movieId: movieId } });
+                                console.log('%c'+ "Created custom event:", "color:green;font-weight:bold", event);
+                                window.dispatchEvent(event);
+                                console.log('%c'+ "Dispatched event", "color:green;font-weight:bold");
+                            } catch (error) { 
+                                console.log(\`getContentId embedded code error: \${error.message}\`);
+                            }
+                        })();                
+                        `;
+
+                    var result;
+                    console.log('%c' + "Adding listener to custom getMovieId() result event", "color:green;font-weight:bold");
+                    window.addEventListener(
+                        "getMovieIdEvent",
+                        event => {
+                            result = event.detail.movieId;
+                            console.log('%c' + `Intercepted event with getMovieId() result from playback: result=${result}`, "color:green;font-weight:bold");
+                        }
+                    );
+
+                    PlaybackController.injectEmbeddedCode(embeddedCode);
+
+                    return result;
+                } catch (error) {
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.getDuration() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
         }
 
         /*
-        ====================================================================================================
-                                        P L A Y B A C K   A P I
-        ====================================================================================================
+        ============================================================================================
+                                P L A Y B A C K   C O M M A N D S   H A N D L I N G
+        ============================================================================================
         */
 
         /**
-         *************************************************************************************************** 
+         *******************************************************************************************
          * @summary Requests handler.
          * @description Handles requests received from other components using message-based 
          * communication mechanism.
@@ -332,7 +388,7 @@
          * @todo Implement the handling of a 'stop'/'freeze' command that could be sent from the 
          * extension so that execution of the decisional/detection algorithms of the sharingan can
          * be frozen/stopped.
-         ***************************************************************************************************
+         *******************************************************************************************
          */
         function handleReceivedMessages(request, sender, sendResponse) {
             console.log("Entering handleReceivedMessages : Message received :");
@@ -344,6 +400,7 @@
                 // @tofix: sender.url undefined in chrome for extension pages
                 console.log(`From extension (source=${request.senderName} at url=${sender.url}`);
             }
+
             if ("enableSharingan" === request.command) {
                 console.log("Executing enableSharingan command with segments ", request.segments);
 
@@ -355,6 +412,16 @@
                             " to skip injected into Netflix playback webpage",
                     }
                 );
+            } else if ("getContentId" === request.command) {
+                console.log("Executing getContentId command ");
+                let result = PlaybackController.getContentId();
+                return Promise.resolve(
+                    {
+                        receiverName: "contentScriptNetflixPlaybackController.js",
+                        message: "getContentId code embedded and executed into Netflix playback webpage",
+                        result: result
+                    }
+                );
             } else if ("seek" === request.command) {
                 console.log("Executing seek command ");
                 PlaybackController.seek(request.timestamp);
@@ -364,7 +431,6 @@
                         message: "Seek code embedded and executed into Netflix playback webpage",
                     }
                 );
-
             } else if ("getDuration" === request.command) {
                 console.log("Executing getDuration command ");
                 let result = PlaybackController.getDuration();
@@ -375,7 +441,6 @@
                         result: result
                     }
                 );
-
             } else if ("skipSegment" === request.command) {
                 console.log("Sending response to skipSegment command ");
                 PlaybackController.setSegmentToSkip(request.segment.startTime, request.segment.endTime);
@@ -385,7 +450,6 @@
                         message: "Set range of segment to skip",
                     }
                 );
-
             } else if ("heartbeat" === request.command) {
                 console.log("Sending response to heartbeat request ...")
                 return Promise.resolve(
@@ -398,9 +462,9 @@
         }
 
         /*
-        ====================================================================================================
-                                     C O N T E N T   S C R I P T   E X E C U T I O N
-        ====================================================================================================
+        ============================================================================================
+                            C O N T E N T   S C R I P T   E X E C U T I O N
+        ============================================================================================
         */
 
 

@@ -1,0 +1,7 @@
+- disable sharingan : return tiemoutID in CustomEvent for every segment injected. Store timeoutIDs in an array in contentScriptNetflixPlaybackController.js.
+
+- Find a way to select the most relevant pair of timestamps (startTime, endTime) for a given segment, amongst all the slightly different pairs
+that users might have collaboralitviely shared.
+
+- Reinitialize the state of the popup to sharingan-available whenever the page reloads (to be done
+probably in popup.js)

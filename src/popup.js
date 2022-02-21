@@ -6,8 +6,8 @@
  *         - 'popup state' is the aggregation of the states of all logical elements of the popup.
  */
 
-import { manifest } from 'webextension-polyfill';
 import * as popupStateAPI from './popupStateAPI.js';
+import * as contentMetadataAPI from './contentMetadataAPI.js';
 
 /*
 ====================================================================================================
@@ -28,14 +28,19 @@ import * as popupStateAPI from './popupStateAPI.js';
 function initPopupUI(currTab, popupState) {
     console.log("Entering initPopupUI() ...");
 
-    if (!popupState || currTab.url != popupState.url) {
-        console.log("Popup state for current tab is empty, or URL changed in the meantime. " +
-            "Init popup UI from scratch ...");
-        initPopupUIFromScratch(currTab);
-    } else {   // Setup from saved popup state
-        console.log("Current tab url matches existing popup saved state url, applying state ....");
-        initPopupUIFromState(popupState);
+    try {
+        if (!popupState || currTab.url != popupState.url) {
+            console.log("Popup state for current tab is empty, or URL changed in the meantime. " +
+                "Init popup UI from scratch ...");
+            initPopupUIFromScratch(currTab);
+        } else {   // Setup from saved popup state
+            console.log("Current tab url matches existing popup saved state url, applying state ....");
+            initPopupUIFromState(popupState);
+        }
+    } catch (error) {
+        console.log('%c' + `popup.js::initPopupUI(): error: ${error.message}`, "color:red;font-weight:bold");
     }
+
 }
 
 /**
@@ -50,11 +55,16 @@ function initPopupUI(currTab, popupState) {
 function initPopupUIFromScratch(currTab) {
     console.log("Entering initPopupUIFromScratch() ...");
 
-    if (!isSupportedStreamingContent(currTab)) {
-        updateSharinganButton("sharingan-unavailable");
+    try {
+        if (!isSupportedStreamingContent(currTab)) {
+            updateSharinganButton("sharingan-unavailable");
+        }
+        popupStateAPI.savePopupState(currTab);
+    } catch (error) {
+        console.log('%c' + `popup.js::initPopupUIFromScratch(): error: ${error.message}`, "color:red;font-weight:bold");
     }
 
-    popupStateAPI.savePopupState(currTab);
+
 }
 
 /**
@@ -68,9 +78,12 @@ function initPopupUIFromScratch(currTab) {
 function initPopupUIFromState(popupState) {
     console.log("Entering initPopupUIFromState() ...");
 
-    const sharinganState = popupState["sharingan"];
-
-    updateSharinganButton(sharinganState);
+    try {
+        const sharinganState = popupState["sharingan"];
+        updateSharinganButton(sharinganState);
+    } catch (error) {
+        console.log('%c' + `popup.js::initPopupUIFromState(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 }
 
 /**
@@ -90,18 +103,23 @@ function initPopupUIFromState(popupState) {
 function updateSharinganButton(sharinganState) {
     console.log("Entering setupSharinganButton() ...");
 
-    console.log(`Sharingan state to apply to sharingan button : "${sharinganState}"`);
+    try {
+        console.log(`Sharingan state to apply to sharingan button : "${sharinganState}"`);
 
-    switch (sharinganState) {
-        case "sharingan-enabled":
-        case "sharingan-unavailable":
-            document.querySelector("#toggle-sharingan-button").classList.add(sharinganState);
-            break;
-        case "sharingan-disabled":        // default state in button's underlying HTML element
-            document.querySelector("#toggle-sharingan-button").classList.remove("sharingan-enabled");
-        default:
-            return;
+        switch (sharinganState) {
+            case "sharingan-enabled":
+            case "sharingan-unavailable":
+                document.querySelector("#toggle-sharingan-button").classList.add(sharinganState);
+                break;
+            case "sharingan-disabled":        // default state in button's underlying HTML element
+                document.querySelector("#toggle-sharingan-button").classList.remove("sharingan-enabled");
+            default:
+                return;
+        }
+    } catch (error) {
+        console.log('%c' + `popup.js::updateSharinganButton(): error: ${error.message}`, "color:red;font-weight:bold");
     }
+
 }
 
 /*
@@ -109,7 +127,6 @@ function updateSharinganButton(sharinganState) {
               S T R E A M I N G   C O N T E N T   S U P P O R T   D E C I S I O N
 ====================================================================================================
 */
-// @todo: move this whole section into its own module
 
 /**
 **************************************************************************************************** 
@@ -136,26 +153,27 @@ const supportedStreamingUrls = [
 function isSupportedStreamingContent(currTab) {
     console.log("Entering isSupportedStreamingContent() ...");
 
-    //var regex = new RegExp(supportedStreamingUrls.join("|"), "i");   // doesn't work
+    try {
+        //var regex = new RegExp(supportedStreamingUrls.join("|"), "i");   // doesn't work
 
-    return /^https?:\/\/([^\/]+\.)?netflix\.com\/(.+\/)?watch\/.+/.test(currTab.url);
+        return /^https?:\/\/([^\/]+\.)?netflix\.com\/(.+\/)?watch\/.+/.test(currTab.url);
+    } catch (error) {
+        console.log('%c' + `popup.js::isSupportedStreamingContent(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 }
 
 /**  
 ****************************************************************************************************
- * @summary Enables sharingan on the current tab's streaming content.
+ * @summary Prepares sharingan on the current tab's streaming content.
  * @description Inject relevant content scripts coding the sharingan mechanism into current tab's 
- * webpage, then saves the newly built state of the popup.
+ * webpage.
  * @param { Tab } currTab Current tab whose webpage's streaming content will be subject to the
  * sharingan activation.
  * @todo Re-inject content script/embedded code into the webpage whenever the web page reloads.
  * Wouls likely require a listener on reloading event on the tab.
- * @todo Consider whether following idea is relevant :
- * Add control on whether current web page has finished loading up, to make sure content scripts 
- * injection will succeed, should loading time drag out.
- * @todo Consider storing pairs <content script filename, has been injected boolean> in global array
- * and injecting them by looping through the array, if the idea is at all appropriate, with the boolean
- * insuring that each content script gets injected only once.
+ * @todo Consider storing pairs <content script filename, has been injected boolean> in global 
+ * array and injecting them by looping through the array, if the idea is at all appropriate, with 
+ * the boolean insuring that each content script gets injected only once.
  * Research whether there are better design strategies out there to guarantee unique injection 
  * of content script/embedded code.
 ****************************************************************************************************
@@ -164,72 +182,125 @@ async function prepareSharingan(currTab) {
     console.log("Entering popup.js::prepareSharingan() ...");
 
     try {
-        //updateSharinganButton("sharingan-enabled");
+        if (!isSupportedStreamingContent(currTab)) {
+            console.log("Unsupported web page for sharingan. Sharingan will no be prepared. Exiting popup.js::prepareSharingan() ...");
+            return;
+        }
+
+        console.log("Preparing sharingan by injecting the relevant content scripts ...");
         // Has to be injected alongside any content script to make the content script compatible 
         // with Chrome with regards to WebExtension API   
         await browser.tabs.executeScript({ file: "/browser-polyfill.min.js" });
         await browser.tabs.executeScript({ file: "/contentScriptNetflixPlaybackController.js" });
 
+        await contentMetadataAPI.saveContentMetadata(currTab);
+
         //popupStateAPI.savePopupState(currTab);
         checkContentScriptsHeartbeat(currTab);     // uncomment when a content script exists
     } catch (error) {
-        console.log(`popup.js::prepareSharingan(): error : ${error.message}`);
+        console.log('%c' + `popup.js::prepareSharingan(): error : ${error.message}`, "color:red;font-weight:bold");
     }
 }
 
-async function getSegmentListFromDB(url) {
+
+/**
+****************************************************************************************************
+ * @description Fetch from database the sensitive segments corresponding to the video content.
+ * @param { Tab } currTab 
+ * @returns List of the sensitive segments
+****************************************************************************************************
+ */
+async function getSegmentsListFromDB(currTab) {
     console.log("Entering getSegmentListFromDB() ...");
 
-    return new Promise(function (resolve) {
-        var segmentsList;
+    try {
+        return new Promise(
+            async function (resolve) {
+                var segmentsList;
 
-        const dbName = "untrigDB";
+                const dbName = "untrigDB";
+                const contentMetadata = await contentMetadataAPI.fetchContentMetadata(currTab);
+                const storeName = "segments-" + contentMetadata.contentId
 
-        var openingRequest = indexedDB.open(dbName, 3);
+                var openingRequest = indexedDB.open(dbName, 3);
 
-        openingRequest.onsuccess = function () {
-            var db = openingRequest.result;
-            var tx = db.transaction("segments", "readwrite");
-            var store = tx.objectStore("segments");
+                openingRequest.onsuccess = function () {
+                    var db = openingRequest.result;
+                    var tx = db.transaction(storeName, "readwrite");
+                    var store = tx.objectStore(storeName);
 
-            // Query the segment from content url
-            var getAllSegmentsQuery = store.getAll();
+                    // Query the segment from store
+                    var getAllSegmentsQuery = store.getAll();
 
-            getAllSegmentsQuery.onsuccess = function (event) {
-                segmentsList = getAllSegmentsQuery.result;
-                console.log(`Successfully queried database for segments associated with contentID :`, segmentsList);
-                console.log("Leaving getSegmentListFromDB() and returning segments=", segmentsList);
-                return resolve(segmentsList);
-            };
+                    getAllSegmentsQuery.onsuccess = function (event) {
+                        segmentsList = getAllSegmentsQuery.result;
+                        console.log(`Successfully queried database for segments associated with contentID :`, segmentsList);
+                        console.log("Leaving getSegmentListFromDB() and returning segments=", segmentsList);
+                        return resolve(segmentsList);
+                    };
 
-            tx.oncomplete = function () {
-                db.close();
-            };
-        }
-    });
+                    tx.oncomplete = function () {
+                        db.close();
+                    };
+                }
+            }
+        );
+    } catch (error) {
+        console.log('%c' + `popup.js::getSegmentsListFromDB(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 }
 
+/**
+****************************************************************************************************
+ * @description Enable sharingan by retrieving and injecting sensitive segments into the video
+ * Playback. 
+ * The segments retrieved from database are intersected with the sensitive categories of the user.
+ * @param { Tab } currTab 
+****************************************************************************************************
+ */
 async function enableSharingan(currTab) {
     console.log("Entering popup.js::enableSharingan() ...");
-    updateSharinganButton("sharingan-enabled");
 
-    var segmentsList = await getSegmentListFromDB(currTab.url);
-    console.log('%c' + `Sending enableSharingan command to content script in tab=${currTab.id}`, "color:green;font-weight:bold", segmentsList);
-    browser.tabs.sendMessage(
-        currTab.id,
-        {
-            command: "enableSharingan",
-            segments: segmentsList,
-            senderName: "popup.js"
+    try {
+
+        updateSharinganButton("sharingan-enabled");
+
+        var fullSegmentsList = await getSegmentsListFromDB(currTab);
+        var userSegmentsList = [];
+        const result = await browser.storage.sync.get("categories");
+        const userSensitiveCategories = result.categories;
+        console.log("Retrieved saved categories :", userSensitiveCategories);
+
+        for (const segment of fullSegmentsList) {
+            for (const userSensitiveCategory of userSensitiveCategories) {
+                for (const segmentCategory of segment.categories) {
+                    console.log(`userSensitiveCategory=${userSensitiveCategory}, segmentCategory=${segmentCategory}, for segment:`, segment);
+                    if (userSensitiveCategory === segmentCategory) {
+                        console.log(`User sensitive category ${userSensitiveCategory} relates to the segment `, segment)
+                        userSegmentsList.push(segment);
+                    }
+                }
+            }
         }
-    ).then(response => {
+
+        console.log('%c' + `Sending enableSharingan command to content script in tab=${currTab.id}`, "color:green;font-weight:bold", userSegmentsList);
+        var response = await browser.tabs.sendMessage(
+            currTab.id,
+            {
+                command: "enableSharingan",
+                segments: userSegmentsList,
+                senderName: "popup.js"
+            }
+        );
         console.log('%c' + "response from:" + `${response.receiverName}, ` +
             `message: ${response.message}, result:${response.result}`, "color:green;font-weight:bold");
-    }).catch(error => {
-        console.log('%c' + `report-form submit callback: error : ${error.message}`, "color:green;font-weight:bold");
-    });
 
-    popupStateAPI.savePopupState(currTab);
+        popupStateAPI.savePopupState(currTab);
+    } catch (error) {
+        console.log('%c' + `popup.js::enableSharingan(): error : ${error.message}`, "color:red;font-weight:bold");
+    }
+
+
 }
 
 /**
@@ -246,9 +317,15 @@ async function enableSharingan(currTab) {
 function disableSharingan(currTab) {
     console.log("Entering disableSharingan() ...");
 
-    updateSharinganButton("sharingan-disabled");
+    try {
 
-    popupStateAPI.savePopupState(currTab);
+        updateSharinganButton("sharingan-disabled");
+
+        popupStateAPI.savePopupState(currTab);
+
+    } catch (error) {
+        console.log('%c' + `popup.js::disableSharingan(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 }
 
 /*
@@ -267,15 +344,19 @@ function disableSharingan(currTab) {
  ***************************************************************************************************
  */
 function checkContentScriptsHeartbeat(currTab) {
-    browser.tabs.sendMessage(
-        currTab.id,
-        { command: "heartbeat", senderName: "popup.js" }
-    ).then(response => {
-        console.log("Heartbeat response from content script : " +
-            `name='${response.receiverName}', state=${response.receiverState}`);
-    }).catch(error => {
-        console.log(`error : ${error.message}`);
-    });
+    try {
+        browser.tabs.sendMessage(
+            currTab.id,
+            { command: "heartbeat", senderName: "popup.js" }
+        ).then(response => {
+            console.log("Heartbeat response from content script : " +
+                `name='${response.receiverName}', state=${response.receiverState}`);
+        }).catch(error => {
+            console.log(`error : ${error.message}`);
+        });
+    } catch (error) {
+        console.log('%c' + `popup.js::checkContentScriptsHeartbeat(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 }
 
 /*
@@ -293,20 +374,15 @@ function checkContentScriptsHeartbeat(currTab) {
 function addListenersToPopup(currTab) {
     console.log("Entering popup.js::addListenersToPopup() ... ");
 
-    /*
-    ------------------------------------------------------------------------------------------------
-                                        POPUP'S MAIN PAGE EVENTS
-    ------------------------------------------------------------------------------------------------
-    */
-    document.addEventListener(
-        "click",
+    try {
+
         /**
         ********************************************************************************************
         * @summary Callback on popup events of type "click".
         * @param { Event } ev Click event dispatched from the popup.
         ********************************************************************************************
         */
-        async function (ev) {
+        async function clickListener(ev) {
             console.log("Entering popup.js::callback for click event listening ...");
 
             try {
@@ -331,11 +407,19 @@ function addListenersToPopup(currTab) {
                     await enableSharingan(currTab);
                 }
             } catch (error) {
-                console.log(`popup.js::callback for click event listener: ${error.message}`);
+                console.log('%c' + `popup.js::clickListener(): error: ${error.message}`);
             }
         }
-    );
 
+        /*
+        --------------------------------------------------------------------------------------------
+                                            POPUP'S MAIN PAGE EVENTS
+        --------------------------------------------------------------------------------------------
+        */
+        document.addEventListener("click", clickListener);
+    } catch (error) {
+        console.log('%c' + `popup.js::addListenersToPopup(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
 
 }
 
@@ -358,8 +442,6 @@ gettingTabs.then(tabs => {
     var currTab = tabs[0];
     console.log(`currTab : id=${currTab.id}, url=${currTab.url}\n`);
 
-    console.log("Managing popupState for current tab ...");
-
     prepareSharingan(currTab).then(() => {
         const fetchingPopupState = popupStateAPI.fetchPopupState(currTab.id);
 
@@ -369,5 +451,5 @@ gettingTabs.then(tabs => {
     });
 
 }).catch(error => {
-    console.log(`error : ${error.message}`);
+    console.log('%c' + `error : ${error.message}`, "color:red;font-weight:bold");
 });

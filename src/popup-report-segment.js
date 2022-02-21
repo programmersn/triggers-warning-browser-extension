@@ -1,4 +1,8 @@
+/**
+ * @description Logic handling for popup-report-segment.html page
+ */
 
+import * as contentMetadataAPI from './contentMetadataAPI.js';
 
 /**
 ****************************************************************************************************
@@ -9,20 +13,16 @@
 function addListenersToPopup(currTab) {
     console.log("Entering popup.js::addListenersToPopup() ... ");
 
-    /*
-    ------------------------------------------------------------------------------------------------
-                                POPUP REPORT SEGMENT PAGE EVENTS
-    ------------------------------------------------------------------------------------------------
-    */
-
     /**
+    ************************************************************************************************
      * @summary Parse a time string and return the equivalent in milliseconds.
      * @param { String } timeInputString Timestamp in hh:mm:ss format
      * @return Time converted in milliseconds
      * @todo Accept hh|h:mm|m:ss|s format in all possible combinations
+    ************************************************************************************************
      */
     function parseTimeInput(timeInputString) {
-        console.log("Entering popup.js::parseTimeInput() ...");
+        console.log("Entering popup-report-segment.js::parseTimeInput() ...");
         try {
             if (false === /^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$/.test(timeInputString)) {
                 console.log(`Input time string '${timeInputString}' ill-formed`);
@@ -31,102 +31,133 @@ function addListenersToPopup(currTab) {
 
             const [hh, mm, ss] = timeInputString.split(':');
 
-            timeInputMs = (Number(hh) * 3600 + Number(mm) * 60 + Number(ss)) * 1000;
+            var timeInputMs = (Number(hh) * 3600 + Number(mm) * 60 + Number(ss)) * 1000;
             console.log(`Parsed hh=${hh}, mm=${mm}, ss=${ss}. Ms=${timeInputMs}`);
 
             return timeInputMs;
         } catch (error) {
-            console.log(`popup.js::parseTimeInput() error: ${error.message}`);
+            console.log('%c' + `popup.js::parseTimeInput() error: ${error.message}`, "color:red;font-weight:bold");
         }
     }
 
+    /**
+    ************************************************************************************************
+     * @description Add segment object to the backend database
+     * @param { object } segment 
+     * @todo For now the backend database is a local indexedDB. 
+    ************************************************************************************************
+     */
     function addSegmentToDB(segment) {
-        console.log("Entering addSegmentToDB() ...")
-        const dbName = "untrigDB";
+        console.log("Entering popup-report-segment.js::addSegmentToDB() ...")
 
-        var openingRequest = indexedDB.open(dbName, 3);
+        try {
+            const dbName = "untrigDB";
+            // add contentID in the store name, e.g segments<contentID>
+            const storeName = "segments-" + segment.contentId;
 
-        openingRequest.onerror = function (event) {
-            console.log(`Error opening ${dbName} database:`, event);
-        };
+            console.log(`Opening indexedDB ${dbName}`);
+            var openingRequest = indexedDB.open(dbName, 3);
 
-        openingRequest.onupgradeneeded = function (event) {
-            console.log("Entering db onupgradeneeded() ... ");
-            var db = openingRequest.result;
+            openingRequest.onerror = function (event) {
+                console.log(`Error opening ${dbName} database:`, event);
+            };
 
-            var store;
-            try {
-                //console.log("ObjectStore 'segments' already exists. Retrieving it ..."); o
-                store = openingRequest.transaction.objectStore("segments");
-            } catch (e) {
-                console.log("ObjectStore 'segments' did not exist. Creating Object Store ... ");
-                // add contentID in the store name, e.g segments<contentID>
-                store = db.createObjectStore("segments", { keyPath: ["timestamps.startTime", "timestamps.endTime"] });
-            }
+            openingRequest.onupgradeneeded = function (event) {
+                console.log("Entering db popup-report-segment.js::addSegmentToDB()::onupgradeneeded() ... ");
+                var db = openingRequest.result;
 
-        };
+                if (!db.objectStoreNames.contains(storeName)) {
+                    console.log(`Store ${storeName} doesn't exist in ${dbName} database. Creating it ...`);
+                    store = db.createObjectStore(storeName, { keyPath: ["timestamps.startTime", "timestamps.endTime"] });
+                }
+            };
 
-        openingRequest.onsuccess = function (event) {
-            console.log("Entering onsuccess() ...");
-            var db = openingRequest.result;
+            openingRequest.onsuccess = function () {
+                console.log("Entering popup-report-segment.js::addSegmentToDB()::onsuccess() ...");
+                var db = openingRequest.result;
 
-            var tx = db.transaction(["segments"], "readwrite");
-            var store = tx.objectStore("segments");
+                var tx = db.transaction([storeName], "readwrite");
+                var store = tx.objectStore(storeName);
 
-            console.log("Store segment metadata in the newly created objectStore ...", segment);
+                console.log(`Store segment metadata in the newly created objectStore ${storeName} ...`, segment);
 
-            store.add(segment);
-            console.log("segmentsObjectStore:", store);
+                store.add(segment);
+                console.log(`Added segment, ${storeName}:`, store);
 
-            tx.oncomplete = function () {
-                db.close();
-            }
+                tx.oncomplete = function () {
+                    console.log(`Entering popup-report-segment.js::addSegmentToDB()::onsuccess()::oncomplete()`);
+                    db.close();
+                };
+            };
+        } catch (error) {
+            console.log('%c' + `popup-report-segment.js::addSegmentToDB(): error : ${error.message}`, "color:red;font-weight:bold");
         }
     }
 
-    function reportNewSegment(ev) {
-        console.log('%c' + "Entering callback attached to submit button ...", "color:green;font-weight:bold");
+    /**
+    ************************************************************************************************
+     * @description Listener to report new segment indicated by user, triggered when user clicks
+     * on report button
+     * @param { Event } ev 
+    ************************************************************************************************
+     */
+    async function reportNewSegment(ev) {
+        console.log("Entering popup-report-segment.js::reportNewSegment() ...");
 
         try {
             var startTime = parseTimeInput(document.getElementById("start-time").value);
-            console.log('%c' + `User inputs retrieved : startTime=${startTime}`, "color:green;font-weight:bold");
+            console.log(`User inputs retrieved : startTime=${startTime}`);
 
             var endTime = parseTimeInput(document.getElementById("end-time").value);
-            console.log('%c' + `User inputs retrieved : endTime=${endTime}`, "color:green;font-weight:bold");
+            console.log(`User inputs retrieved : endTime=${endTime}`);
 
-            var segmentCategories = []
-            var categoriesChecked = document.querySelectorAll('input[type=checkbox]:checked')
+            var segmentCategories = [];
+            var categoriesChecked = document.querySelectorAll('input[type=checkbox]:checked');
 
             for (var i = 0; i < categoriesChecked.length; i++) {
-                segmentCategories.push(categoriesChecked[i].value)
+                segmentCategories.push(categoriesChecked[i].id)
             }
-            // @todo Add movie name, maybe using netflix api or html dom to get it.
+
+            const contentMetadata = await contentMetadataAPI.fetchContentMetadata(currTab);
+
+            console.log(`Fetched contentMetadata`, contentMetadata);
+
             var segment = {
-                //contentID: getContentID(),
+                contentId: contentMetadata.contentId,
                 contentURL: currTab.url,
                 timestamps: { startTime: startTime, endTime: endTime },
                 categories: segmentCategories
             };
 
-            console.log('%c' + `Storing new segment into local database:`, "color:green;font-weight:bold", segment);
+            console.log(`Storing new segment into local database:`, segment);
 
             addSegmentToDB(segment);
 
             ev.preventDefault();
         } catch (error) {
-            console.log(`popup.js::callback for report-form button submit event listener: ${error.message}`);
+            console.log('%c' + `popup.js::reportNewSegment(): error : ${error.message}`, "color:red;font-weight:bold");
         }
     }
 
+    /*
+    ------------------------------------------------------------------------------------------------
+                                POPUP-REPORT-SEGMENT'S PAGE EVENTS
+    ------------------------------------------------------------------------------------------------
+    */
     document.getElementById("report-form").addEventListener("submit", reportNewSegment);
 }
+
+/*
+====================================================================================================
+                                S C R I P T   E X E C U T I O N
+====================================================================================================
+*/
 
 console.log('%c' +
     "************************************************************************************************",
     "color:blue; font-weight:bold");
 
 console.log("Entering popup-report-segment.js script ...");
-
 
 var gettingTabs = browser.tabs.query({ currentWindow: true, active: true });
 
@@ -136,7 +167,6 @@ gettingTabs.then(tabs => {
     console.log(`currTab : id=${currTab.id}, url=${currTab.url}\n`);
 
     addListenersToPopup(currTab);
-
 }).catch(error => {
-    console.log(`error : ${error.message}`);
+    console.log('%c' + `popup-report-segment.js: error : ${error.message}`, "color:red;font-weight:bold");
 });
