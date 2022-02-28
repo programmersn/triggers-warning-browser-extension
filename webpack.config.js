@@ -16,7 +16,7 @@ module.exports = {
 		// @todo Find a way to replicate as output in dist directory the tree structure of src 
 		// directory (made out of folders popup, background, options ect ...) to better organize the 
 		// code
-		path: path.join(__dirname, 'dist'),
+		path: path.join(__dirname, 'dist-chrome'),
 		filename: '[name].js'
 	},
 	resolve: {

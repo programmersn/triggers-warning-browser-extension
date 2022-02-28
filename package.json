@@ -6,8 +6,8 @@
 		"lint-fix": "run-p 'lint:* -- --fix'",
 		"lint:css": "stylelint src/**/*.css",
 		"lint:js": "xo",
-		"release:chrome": "cd distribution && webstore upload --auto-publish",
-		"release:firefox": "cd distribution && web-ext-submit",
+		"release:chrome": "cd dist-chrome && webstore upload --auto-publish",
+		"release:firefox": "cd dist-firefox && web-ext-submit",
 		"test": "run-s lint:* build",
 		"watch": "webpack --mode=development --watch"
 	},
@@ -19,7 +19,8 @@
 			"browser"
 		],
 		"ignores": [
-			"distribution"
+			"dist-chrome",
+			"dist-firefox"
 		]
 	},
 	"stylelint": {

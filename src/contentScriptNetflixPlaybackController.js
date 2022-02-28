@@ -1,8 +1,7 @@
 /**
- * @fileoverview Content script to control Netflix video playback via re-implementation of a subset
- * of Netflix's internal frontend playback API.
+ * @fileoverview Content script to control Netflix video playback via wrapping of a subset of 
+ * Netflix's internal frontend playback API.
  */
-
 (function () {
     try {
         if (window.hasRun) {

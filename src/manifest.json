@@ -26,7 +26,7 @@
 			"/browser-polyfill.min.js",
 			"/backgroundPopupState.js",
 			"/backgroundSubtitlesFetcher.js",
-			"backgroundContentMetadata.js"
+			"/backgroundContentMetadata.js"
 		]
 	},
 	"browser_action": {
@@ -37,12 +37,8 @@
 		},
 		"default_title": "Untrig",
 		"default_popup": "/popup.html"
-	},
+	}
 	
-	"browser_specific_settings": {
-		"gecko": {
-		  "id": "addon@example.com"
-		}
-	  }
+	
 	
 }

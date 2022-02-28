@@ -1,5 +1,6 @@
 /**
- * @fileoverview 
+ * @fileoverview Primitives for user settings/options storage and retrieval
+ * @description Uses the native browsers' storage.sync as database
  */
 
 /*
@@ -33,7 +34,7 @@ function saveOptions(event) {
 
 /**
 ****************************************************************************************************
- * @description Restore options into options.html page as soon as the pages DOM has loaded
+ * @description Restore options into options.html page as soon as the page's DOM has loaded
 ****************************************************************************************************
  */
 function restoreOptions() {
@@ -50,7 +51,7 @@ function restoreOptions() {
     function setCurrentCategories(result) {
         console.log("Entering options.js::restoreOptions()::setCurrentCategories() ...");
 
-        var savedCategories = result.categories;
+        var savedCategories =  [...result.categories];
         console.log("Retrieved saved categories :", savedCategories);
 
         for (category of savedCategories) {

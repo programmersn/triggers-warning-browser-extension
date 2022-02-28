@@ -24,7 +24,6 @@ import * as contentMetadataAPI from './contentMetadataAPI.js';
  * @param { object } popupState The state of the current popup.
 **************************************************************************************************** 
  */
-
 function initPopupUI(currTab, popupState) {
     console.log("Entering initPopupUI() ...");
 
@@ -40,7 +39,6 @@ function initPopupUI(currTab, popupState) {
     } catch (error) {
         console.log('%c' + `popup.js::initPopupUI(): error: ${error.message}`, "color:red;font-weight:bold");
     }
-
 }
 
 /**
@@ -262,7 +260,6 @@ async function enableSharingan(currTab) {
     console.log("Entering popup.js::enableSharingan() ...");
 
     try {
-
         updateSharinganButton("sharingan-enabled");
 
         var fullSegmentsList = await getSegmentsListFromDB(currTab);
@@ -299,8 +296,6 @@ async function enableSharingan(currTab) {
     } catch (error) {
         console.log('%c' + `popup.js::enableSharingan(): error : ${error.message}`, "color:red;font-weight:bold");
     }
-
-
 }
 
 /**
