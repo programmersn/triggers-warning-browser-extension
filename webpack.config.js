@@ -8,7 +8,7 @@ module.exports = {
 	entry: {
 		backgroundPopupState: './src/backgroundPopupState',
 		backgroundSubtitlesFetcher: './src/backgroundSubtitlesFetcher',
-		backgroundContentMetadata: 'backgroundContentMetadata.js',
+		backgroundContentMetadata: './src/backgroundContentMetadata.js',
 		popup: './src/popup',
 		options: './src/options'
 	},
@@ -30,8 +30,7 @@ module.exports = {
 			{
 				patterns: [
 					{ from: "src" },
-					{ from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js' },
-					{ from: 'node_modules/dompurify/dist/purify.min.js'}
+					{ from: 'node_modules/webextension-polyfill/dist/browser-polyfill.min.js' }
 				],
 			},
 		)

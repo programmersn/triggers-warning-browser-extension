@@ -9,8 +9,10 @@
 		"release:chrome": "cd dist-chrome && webstore upload --auto-publish",
 		"release:firefox": "cd dist-firefox && web-ext-submit",
 		"test": "run-s lint:* build",
-		"watch": "webpack --mode=development --watch"
+		"watch": "webpack --mode=development --watch",
+		"clean": "rm -rfd dist-chrome dist-firefox"
 	},
+	"proxy": "http://localhost:8000",
 	"xo": {
 		"envs": [
 			"browser"
@@ -27,8 +29,10 @@
 		"extends": "stylelint-config-xo"
 	},
 	"dependencies": {
+		"axios": ">=0.26.0",
 		"content-scripts-register-polyfill": "^1.0.5",
-		"dompurify": "^2.3.5",
+		"js-cookie": "^3.0.1",
+		"require": "^2.4.20",
 		"webext-options-sync": ">=0.21.2",
 		"webextension-polyfill": ">=0.4.0"
 	},

@@ -5,3 +5,15 @@ that users might have collaboralitviely shared.
 
 - Reinitialize the state of the popup to sharingan-available whenever the page reloads (to be done
 probably in popup.js)
+
+- Currently, getContentId() method is triggered in content script every time the popup opens. 
+Improve that by fetching the contentId from contentMetadata so that subsequent calls to the method won't be needed.
+
+- When a user submits a sensitive segment without indicating a sensitive category, displays an error message on popup-report-segment.html page
+
+- Extract only the useful part in Netflix URLS lying before '?trackId' token, and only make use of that part across the whole codebase 
+for simplicity and uniformity sake
+
+- Inject a newly reported graphic segment into the playback locally.
+
+- If sharingan is already enabled, when options are set or updated, inject segments pertaining to the new categories user set.

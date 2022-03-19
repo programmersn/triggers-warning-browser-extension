@@ -201,6 +201,7 @@ async function prepareSharingan(currTab) {
 }
 
 
+
 /**
 ****************************************************************************************************
  * @description Fetch from database the sensitive segments corresponding to the video content.
@@ -208,8 +209,8 @@ async function prepareSharingan(currTab) {
  * @returns List of the sensitive segments
 ****************************************************************************************************
  */
-async function getSegmentsListFromDB(currTab) {
-    console.log("Entering getSegmentListFromDB() ...");
+async function getSegmentsListFromIndexedDB(currTab) {
+    console.log("Entering getSegmentsListFromIndexedDB() ...");
 
     try {
         return new Promise(
@@ -244,9 +245,39 @@ async function getSegmentsListFromDB(currTab) {
             }
         );
     } catch (error) {
-        console.log('%c' + `popup.js::getSegmentsListFromDB(): error: ${error.message}`, "color:red;font-weight:bold");
+        console.log('%c' + `popup.js::getSegmentsListFromIndexedDB(): error: ${error.message}`, "color:red;font-weight:bold");
     }
 }
+
+/**
+ * 
+ * @param {*} currTab 
+ * @returns 
+ * @todo Add authentication to API
+ */
+async function getSegmentsListFromDjangoAPI(currTab) {
+    console.log(`Entering popup.js::getSegmentsListFromDjangoAPI() ...`);
+
+    try {
+        const contentMetadata = await contentMetadataAPI.fetchContentMetadata(currTab);
+        const contentId = contentMetadata.contentId
+
+        const url = "https://untrig.herokuapp.com/api/segments/"
+        //const url = "http://localhost:5000/api/segments/"
+
+        var result = await fetch(url + "?contentId=" + contentId);
+
+        var data = await result.json();
+        console.log(`Queried remote API for entire database: `, data);
+
+        return data;
+    } catch (error) {
+        console.log('%c' + `popup.js::getSegmentsListFromDjangoAPI(): error: ${error.message}`, "color:red;font-weight:bold");
+    }
+
+}
+
+const getSegmentsListFromDB = getSegmentsListFromDjangoAPI;
 
 /**
 ****************************************************************************************************
@@ -264,9 +295,17 @@ async function enableSharingan(currTab) {
 
         var fullSegmentsList = await getSegmentsListFromDB(currTab);
         var userSegmentsList = [];
+
         const result = await browser.storage.sync.get("categories");
-        const userSensitiveCategories = result.categories;
-        console.log("Retrieved saved categories :", userSensitiveCategories);
+        console.log(`browser.storage.sync.get() returned result=`, result)
+        if (undefined === result.categories || null === result.categories) {
+            console.log("browser.storage.sync.get() returned null or undefined categories object. Exiting function ...");
+            popupStateAPI.savePopupState(currTab);
+            return;
+        }
+
+        console.log("Retrieved saved categories :", result.categories);
+        const userSensitiveCategories = Object.values(result.categories);
 
         for (const segment of fullSegmentsList) {
             for (const userSensitiveCategory of userSensitiveCategories) {

@@ -24,6 +24,7 @@ function saveOptions(event) {
     var categoriesChecked = document.querySelectorAll('input[type=checkbox]:checked')
 
     for (var i = 0; i < categoriesChecked.length; i++) {
+        console.log(`Saving category ${categoriesChecked[i].id} ...`);
         sensitiveCategories.push(categoriesChecked[i].id)
     }
 
@@ -51,12 +52,22 @@ function restoreOptions() {
     function setCurrentCategories(result) {
         console.log("Entering options.js::restoreOptions()::setCurrentCategories() ...");
 
-        var savedCategories =  [...result.categories];
-        console.log("Retrieved saved categories :", savedCategories);
+        try {
+            console.log(`browser.storage.sync.get() returned result=`, result)
+            if (undefined === result.categories || null === result.categories) {
+                console.log("browser.storage.sync.get() returned null or undefined categories object. Exiting function ...");
+                return;
+            }
 
-        for (category of savedCategories) {
-            console.log(`Checking box of category with id=${category}`)
-            document.getElementById(category).checked = true;
+            console.log(`Setting user saved categories in html page: `, result.categories);
+            var savedCategories = Object.values(result.categories);
+
+            for (category of savedCategories) {
+                console.log(`Checking box of category with id=${category}`);
+                document.getElementById(category).checked = true;
+            }
+        } catch (error) {
+            console.log('%c' + `options.js::restoreOptions()::setCurrentCategories() error: ${error.message}`, "color:red;font-weight:bold")
         }
     }
 
@@ -75,8 +86,12 @@ function restoreOptions() {
                                     EXECUTING FUNCTION
     ------------------------------------------------------------------------------------------------
     */
-    let getting = browser.storage.sync.get("categories");
-    getting.then(setCurrentCategories, onError);
+    try {
+        let getting = browser.storage.sync.get("categories");
+        getting.then(setCurrentCategories, onError);
+    } catch (error) {
+        console.log('%c' + `options.js::restoreOptions() error: ${error.message}`, "color:red;font-weight:bold")
+    }
 }
 
 /*

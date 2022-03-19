@@ -5,7 +5,7 @@
 import * as contentMetadataAPI from './contentMetadataAPI.js';
 
 /**
-****************************************************************************************************
+*****************************import ***********************************************************************
  * @summary Attach callbacks to relevant events occurring in the popup's report page events.
  * @param { Tab } currTab Object holding current tab's metadata.
 ****************************************************************************************************
@@ -17,7 +17,7 @@ function addListenersToPopup(currTab) {
     ************************************************************************************************
      * @summary Parse a time string and return the equivalent in milliseconds.
      * @param { String } timeInputString Timestamp in hh:mm:ss format
-     * @return Time converted in milliseconds
+     * @return { Number } Time converted in milliseconds
      * @todo Accept hh|h:mm|m:ss|s format in all possible combinations
     ************************************************************************************************
      */
@@ -47,7 +47,7 @@ function addListenersToPopup(currTab) {
      * @todo For now the backend database is a local indexedDB. 
     ************************************************************************************************
      */
-    function addSegmentToDB(segment) {
+    function addSegmentToIndexedDB(segment) {
         console.log("Entering popup-report-segment.js::addSegmentToDB() ...")
 
         try {
@@ -68,7 +68,7 @@ function addListenersToPopup(currTab) {
 
                 if (!db.objectStoreNames.contains(storeName)) {
                     console.log(`Store ${storeName} doesn't exist in ${dbName} database. Creating it ...`);
-                    store = db.createObjectStore(storeName, { keyPath: ["timestamps.startTime", "timestamps.endTime"] });
+                    store = db.createObjectStore(storeName, { keyPath: ["startTime", "endTime"] });
                 }
             };
 
@@ -94,6 +94,40 @@ function addListenersToPopup(currTab) {
         }
     }
 
+    /** 
+     * 
+     * @param {*} segment 
+     * @todo Add authentication to the API
+     */
+    async function addSegmentToDjangoAPI(segment) {
+        console.log(`Entering popup.js::addSegmentToDjangoAPI() ...`);
+
+        try {
+            const url = 'https://untrig.herokuapp.com/api/segments/';
+            //const url = 'http://localhost:5000/api/segments/';
+
+            fetch(url,
+                {
+                    method: "post",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'                        
+                    },
+                    body: JSON.stringify(segment)
+                })
+                .then(response => {
+                    console.log(`Response to post request :`, response);
+                })
+                .catch(error => {
+                    console.log(`Error from post request:`, error);
+                });
+        } catch (error) {
+            console.log('%c' + `popup-report-segment.js::addSegmentToDjangoAPI(): error: ${error.message}`, "color:red;font-weight:bold");
+        }
+    }
+
+    const addSegmentToDB = addSegmentToDjangoAPI;
+
     /**
     ************************************************************************************************
      * @description Listener to report new segment indicated by user, triggered when user clicks
@@ -118,24 +152,31 @@ function addListenersToPopup(currTab) {
                 segmentCategories.push(categoriesChecked[i].id)
             }
 
+            console.log(`User selected categories:`, segmentCategories);
+            if (0 === segmentCategories.length) {
+                throw RangeError("The user must select at least one category to report a segment");
+            }
+
             const contentMetadata = await contentMetadataAPI.fetchContentMetadata(currTab);
 
             console.log(`Fetched contentMetadata`, contentMetadata);
 
+            const [currTabUrl, ...rest] = currTab.url.split("?trackId=");
+            console.log(`Extracted useful prefix '${currTabUrl}' from current tab url, to be embedded into the segment object`);
+
             var segment = {
-                contentId: contentMetadata.contentId,
-                contentURL: currTab.url,
-                timestamps: { startTime: startTime, endTime: endTime },
+                contentId: contentMetadata.contentId.toString(),
+                contentURL: currTabUrl,
+                startTime: startTime.toString(),
+                endTime: endTime.toString(),
                 categories: segmentCategories
             };
 
-            console.log(`Storing new segment into local database:`, segment);
+            console.log(`Storing new segment into database:`, segment);
 
-            addSegmentToDB(segment);
-
-            ev.preventDefault();
+            await addSegmentToDB(segment);
         } catch (error) {
-            console.log('%c' + `popup.js::reportNewSegment(): error : ${error.message}`, "color:red;font-weight:bold");
+            console.log('%c' + `popup-report-segment.js::reportNewSegment(): error : ${error.message}`, "color:red;font-weight:bold");
         }
     }
 

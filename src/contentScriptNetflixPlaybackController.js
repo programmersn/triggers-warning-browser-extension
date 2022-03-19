@@ -252,10 +252,16 @@
                     console.log("Entering contenScriptNetflixPlaybackController::Playback.setSegmentToskip() ...");
 
                     let videoDuration = PlaybackController.getDuration();
-                    if (startTime < 0 || startTime >= videoDuration ||
-                        endTime <= 0 || endTime > videoDuration ||
-                        startTime >= endTime) {
-                        throw RangeError(`timestamps invalid range in video playback`);
+                    if (startTime < 0) {
+                        throw RangeError(`timestamps invalid range in video playback: startTime=${startTime} < 0`);
+                    } else if (startTime >= videoDuration) {
+                        throw RangeError(`timestamps invalid range in video playback: startTime=${startTime} >= videoDuration=${videoDuration}`);
+                    } else if (endTime <= 0) {
+                        throw RangeError(`timestamps invalid range in video playback: endTime=${endTime} <= 0`);
+                    } else if (endTime > videoDuration) {
+                        throw RangeError(`timestamps invalid range in video playback: endTime=${endTime} > videoDuration=${videoDuration}`);
+                    } else if (startTime >= endTime) {
+                        throw RangeError(`timestamps invalid range in video playback: startTime=${startTime} >= endTime=${endTime}`);
                     }
 
                     var errorMargin = PlaybackController.computeErrorMargin(endTime);
@@ -313,7 +319,7 @@
 
                     for (const segment of segments) {
                         console.log("Injecting segment", segment);
-                        PlaybackController.setSegmentToSkip(segment.timestamps.startTime, segment.timestamps.endTime);
+                        PlaybackController.setSegmentToSkip(Number(segment.startTime), Number(segment.endTime));
                     }
                 } catch (error) {
                     console.log('%c' + `contenScriptNetflixPlaybackController::Playback.enableSharingan() error: ${error.message}`, "color:red;font-weight:bold");

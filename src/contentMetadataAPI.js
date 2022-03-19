@@ -8,6 +8,8 @@
  * @summary Save content metadata for current video
  * @description Save the content metadata into the background script through use of sendMessage API.
  * @param { Tab } currTab Object for current tab for which the content metadata is being saved.
+ * @todo Check whether contentId already exists in contentMetadata, if it does then no need to query
+ * the content script anymore
 **************************************************************************************************** 
  */
 export async function saveContentMetadata(currTab) {

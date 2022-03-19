@@ -17,11 +17,9 @@
 		"*://*/?o=*"
 	],
 	"options_ui": {
-		"chrome_style": true,
 		"page": "/options.html"
 	},
 	"background": {
-		"persistent": true,
 		"scripts": [
 			"/browser-polyfill.min.js",
 			"/backgroundPopupState.js",
@@ -38,7 +36,4 @@
 		"default_title": "Untrig",
 		"default_popup": "/popup.html"
 	}
-	
-	
-	
 }
