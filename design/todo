@@ -17,3 +17,19 @@ for simplicity and uniformity sake
 - Inject a newly reported graphic segment into the playback locally.
 
 - If sharingan is already enabled, when options are set or updated, inject segments pertaining to the new categories user set.
+
+- Seems like subtitleFetcher script is having hard times when VPN is activated
+
+- contentScriptNEtflixPlaybackController sometimes inject embedded code before netflix page has fully loaded, resulting in 'player' and 
+'videoPlayer' vars not being defined. 
+Ex: prepareSharingan() when the user opens the popup before the playback page has loaded, resulting in the contentId.js embedded code
+failing to execute as Netflix's vars are not defined yet, causing contentId not being retrieved, which jeopardizes the execution of any
+subsequent action.
+
+- Add features in reporting graphic scenes whereby user can add extra informations about the nature of the segment he's reporting
+
+- Check user provided timestamps against video duration
+
+- Consider purging un-needed permissions :
+Is webNavigation permission still needed ? 
+Is host permission needed with declarativeNetRequest ? No

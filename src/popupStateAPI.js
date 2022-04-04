@@ -27,90 +27,96 @@
 */
 
 /**
-**************************************************************************************************** 
+ **************************************************************************************************** 
  * @summary Save current popup state.
  * @description Save the popup state into the background script through use of sendMessage API.
  * @param { Tab } currTab Object holding metadata on tab for which popup state is being saved.
-**************************************************************************************************** 
+ **************************************************************************************************** 
  */
-export function savePopupState(currTab) {
+export async function savePopupState(currTab) {
     console.log("Entering savePopupState() ...");
 
-    browser.runtime.sendMessage(
-        {
-            command: "savePopupState",
-            popupState: {
-                [currTab.id]: {
-                    url: currTab.url,
-                    sharingan: getSharinganState()
-                }
-            },
-            senderName: "popup.js"
-        }
-    ).then(response => {
-        console.log("response from:" + `${response.receiverName}, ` +
-            `message: ${response.message}`);
-    }).catch(error => {
-        console.log(`error : ${error.message}`);
-    });
-}
-
-/**
-****************************************************************************************************
- * @summary Fetch popup state for a certain tab.
- * @description Make a request through sendMessage API to the background script holding popup state
- * objects in order to fetch the popup state matching the id of the underlying tab.
- * @param { Number } tabId Identifier of the tab to fetch the popup state for.
- * @returns { object } Popup state of the tab having `tabId` as identifier.
-**************************************************************************************************** 
- */
-export async function fetchPopupState(tabId) {
-    console.log("Entering popupStateAPI.js::fetchPopupState() ...");
-
     try {
-        let response = await browser.runtime.sendMessage(
-            {
-                command: "fetchPopupState",
-                tabId: tabId,
-                senderName: "popup.js"
+        const popupState = {
+            [currTab.id]: {
+                url: currTab.url,
+                sharingan: getSharinganState()
             }
-        );
+        };
 
-        console.log(`Response from : '${response.receiverName}': popupState=`, response.popupState);
-        let popupState = response.popupState;
+        let items = await browser.storage.local.get(null);
 
-        if (undefined === popupState)
-            popupState = null;
+        console.log(`Retrieved popupStates in localStorage:`, items, items.popupStates);
+        if (items.popupStates) {
+            Object.assign(items.popupStates, popupState);
+        } else {
+            Object.assign(items, { popupStates: popupState });
+        }
 
-        return popupState;
+        console.log(`Saving updated popupStates in localStorage:`, items.popupStates);
+        await browser.storage.local.set(items);
     } catch (error) {
-        console.log(`popupStateAPI.js::fetchPopupState()::error : ${error.message}`);
+        console.log('%c' + `popupStateAPI.js::savePopupState()::error : ${error.message}`, "color:red;font-weight:bold;");
     }
 }
 
 /**
-****************************************************************************************************
+ ****************************************************************************************************
+ * @summary Fetch popup state for a certain tab.
+ * @description Make a request through sendMessage API to the background script holding popup state
+ * objects in order to fetch the popup state matching the id of the underlying tab.
+ * @param { Tab } currTab Current tab to fetch the popup state for.
+ * @returns { object } Popup state of the current tab 
+ **************************************************************************************************** 
+ */
+export async function fetchPopupState(currTab) {
+    console.log('%c' + "Entering popupStateAPI.js::fetchPopupState() ...", "color:red; font-weight:bold; font-style:italic");
+
+    try {
+        const items = await browser.storage.local.get(null);
+        console.log(`Fetched all items from from localStorage:`, items);
+
+        console.log(`popupStates from localStorage:`, items.popupStates);
+
+        console.log(`Returning popupState for curr currTab.id=${currTab.id} from localStorage:`, items.popupStates[currTab.id]);
+
+        return items.popupStates[currTab.id];
+    } catch (error) {
+        console.log('%c' + `popupStateAPI.js::fetchPopupState()::error : ${error.message}`, "color:red;font-weight:bold;");
+    }
+}
+
+/**
+ ****************************************************************************************************
  * @summary Get current sharingan state.
  * @description Get the sharingan state pertaining to the underlying active tab.
  * Sharingan state is extracted from the html interface of the popup UI's sharingan button.
  * @returns { String } String object describing sharingan state.
-****************************************************************************************************
+ ****************************************************************************************************
  */
 function getSharinganState() {
     console.log("Entering getSharinganState ...");
-    const listSharinganClasses = document.querySelector("#toggle-sharingan-button").classList;
-    const len = listSharinganClasses.length;
 
-    /* Sharingan state is always defined by the last class of the 
-    'toggle-sharingan-button' html element */
-    return listSharinganClasses.item(len - 1);
+    try {
+        const listSharinganClasses = document.querySelector("#toggle-sharingan-button").classList;
+        const len = listSharinganClasses.length;
+
+        // Sharingan state is always defined by the last class of the 'toggle-sharingan-button' 
+        // html element 
+        let sharinganState = listSharinganClasses.item(len - 1);
+
+        console.log('%c' + "Returning sharinganState=", "font-weight:bold;font-decoration:underline", sharinganState)
+        return sharinganState;
+    } catch (error) {
+        console.log('%c' + `popupStateAPI.js::getSharinganState()::error : ${error.message}`, "color:red;font-weight:bold;");
+    }
 }
 
 /**
-****************************************************************************************************
+ ****************************************************************************************************
  * @summary Simple function to check whether sharingan is enabled
  * @returns Boolean indicating whether sharingan is enabled
-****************************************************************************************************
+ ****************************************************************************************************
  */
 function isSharinganEnabled() {
     console.log("Entering isSharinganEnabled() ...");

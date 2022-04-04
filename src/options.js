@@ -1,6 +1,8 @@
 /**
  * @fileoverview Primitives for user settings/options storage and retrieval
- * @description Uses the native browsers' storage.sync as database
+ * @description Uses the native browsers storage.sync as database, never to be cleared !
+ * @note storage.sync is never to be cleared ! Use storage.local for temporary data instead. 
+ * Cf. popupStateAPI and contentMetadataAPI
  */
 
 /*
@@ -10,11 +12,11 @@
 */
 
 /**
-****************************************************************************************************
+ ****************************************************************************************************
  * @summary Save options chosen by user from options.html page
  * @description Retrieve the categories checked by the user in options.html
  * @param { Event } event Event triggered when user clicks on save categories button
-****************************************************************************************************
+ ****************************************************************************************************
  */
 function saveOptions(event) {
     console.log("Entering options.js saveOptions() ...");
@@ -34,20 +36,20 @@ function saveOptions(event) {
 }
 
 /**
-****************************************************************************************************
+ ****************************************************************************************************
  * @description Restore options into options.html page as soon as the page's DOM has loaded
-****************************************************************************************************
+ ****************************************************************************************************
  */
 function restoreOptions() {
     console.log("Entering options.js::restoreOptions() ...");
 
     /**
-    ************************************************************************************************
+     ************************************************************************************************
      * @summary Listener triggered when data is fetched from storage.sync
      * @description Fetches the sensitive categories of user and applies them into the options.html
      * page by checking all the relevant checkboxes.
      * @param { object } result Object 
-    ************************************************************************************************
+     ************************************************************************************************
      */
     function setCurrentCategories(result) {
         console.log("Entering options.js::restoreOptions()::setCurrentCategories() ...");
@@ -72,10 +74,10 @@ function restoreOptions() {
     }
 
     /**
-    ************************************************************************************************
+     ************************************************************************************************
      * @summary Triggered when error occurs on browser.sync data fetching
      * @param { Error } error 
-    ************************************************************************************************
+     ************************************************************************************************
      */
     function onError(error) {
         console.log(`options.js::restoreOptions()::onError(): error : ${error.message}`);

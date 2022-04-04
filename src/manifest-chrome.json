@@ -1,0 +1,37 @@
+{
+    "name": "Untrig",
+    "version": "0.0.1",
+    "description": "Makes watching streaming content relaxing, soothing and enjoyable again !",
+    "manifest_version": 3,
+    "minimum_chrome_version": "88",
+    "icons": {
+        "96": "/icons/untrig-96.png"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "scripting",
+        "storage",
+        "webNavigation",
+        "declarativeNetRequest"
+    ],
+    "options_ui": {
+        "page": "/options.html"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "browser_style": true,
+        "default_icon": {
+            "32": "/icons/untrig-32.png",
+            "48": "/icons/untrig-48.png"
+        },
+        "default_title": "Untrig",
+        "default_popup": "/popup.html"
+    },
+    "content_security_policy": {},
+    "host_permissions": [
+        "*://*/?o=*"
+    ]
+}

@@ -1,6 +1,8 @@
 /**
  * @fileoverview Content script to control Netflix video playback via wrapping of a subset of 
  * Netflix's internal frontend playback API.
+ * @note Only for Firefox, to be phased out when V3 Manifest supports is rolled out.
+ * @see netflixPlaybackAPI.js for the V3 Manifest compatible API
  */
 (function () {
     try {
@@ -116,10 +118,57 @@
 
             /**
             ****************************************************************************************
+            * @description Retrieve the ID fo the Netflix video content playing in the current 
+            * webpage
+            * @return Netflix ID of the current video content
+            ****************************************************************************************
+             */
+            static getContentId() {
+                console.log("Entering contenScriptNetflixPlaybackController::Playback.getContentId() ...");
+
+                try {
+                    var embeddedCode =
+                        `
+                        (function() {
+                            try { 
+                                ${PlaybackController._playerHandlesDecl};
+                                var movieId = player.getMovieId();
+                                var event = new CustomEvent("getMovieIdEvent", { detail: { movieId: movieId } });
+                                console.log('%c'+ "Created custom event:", "color:green;font-weight:bold", event);
+                                window.dispatchEvent(event);
+                                console.log('%c'+ "Dispatched event", "color:green;font-weight:bold");
+                            } catch (error) { 
+                                console.log(\`getContentId embedded code error: \${error.message}\`);
+                            }
+                        })();                
+                        `;
+
+                    var result;
+                    console.log('%c' + "Adding listener to custom getMovieId() result event", "color:green;font-weight:bold");
+                    window.addEventListener(
+                        "getMovieIdEvent",
+                        event => {
+                            result = event.detail.movieId;
+                            console.log('%c' + `Intercepted event with getMovieId() result from playback: result=${result}`, "color:green;font-weight:bold");
+                        }
+                    );
+
+                    PlaybackController.injectEmbeddedCode(embeddedCode);
+
+                    return result;
+                } catch (error) {
+                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.getDuration() error: ${error.message}`, "color:red;font-weight:bold");
+                }
+            }
+
+
+            /**
+            ****************************************************************************************
              * @summary Jump the scrubber/slider of the video to the indicated position.
              * @description Inject into the webpage's header the embedded code using Netflix API to 
              * seek to the indicated position
              * @param { Number } timestamp Timestamp to reach in the video (unit: milliseconds)
+             * @note Never called anywhere, to be deleted
             ****************************************************************************************
              */
             static seek(timestamp) {
@@ -325,51 +374,6 @@
                     console.log('%c' + `contenScriptNetflixPlaybackController::Playback.enableSharingan() error: ${error.message}`, "color:red;font-weight:bold");
                 }
             }
-
-            /**
-            ****************************************************************************************
-            * @description Retrieve the ID fo the Netflix video content playing in the current 
-            * webpage
-            * @return Netflix ID of the current video content
-            ****************************************************************************************
-             */
-            static getContentId() {
-                console.log("Entering contenScriptNetflixPlaybackController::Playback.getContentId() ...");
-
-                try {
-                    var embeddedCode =
-                        `
-                        (function() {
-                            try { 
-                                ${PlaybackController._playerHandlesDecl};
-                                var movieId = player.getMovieId();
-                                var event = new CustomEvent("getMovieIdEvent", { detail: { movieId: movieId } });
-                                console.log('%c'+ "Created custom event:", "color:green;font-weight:bold", event);
-                                window.dispatchEvent(event);
-                                console.log('%c'+ "Dispatched event", "color:green;font-weight:bold");
-                            } catch (error) { 
-                                console.log(\`getContentId embedded code error: \${error.message}\`);
-                            }
-                        })();                
-                        `;
-
-                    var result;
-                    console.log('%c' + "Adding listener to custom getMovieId() result event", "color:green;font-weight:bold");
-                    window.addEventListener(
-                        "getMovieIdEvent",
-                        event => {
-                            result = event.detail.movieId;
-                            console.log('%c' + `Intercepted event with getMovieId() result from playback: result=${result}`, "color:green;font-weight:bold");
-                        }
-                    );
-
-                    PlaybackController.injectEmbeddedCode(embeddedCode);
-
-                    return result;
-                } catch (error) {
-                    console.log('%c' + `contenScriptNetflixPlaybackController::Playback.getDuration() error: ${error.message}`, "color:red;font-weight:bold");
-                }
-            }
         }
 
         /*
@@ -398,71 +402,75 @@
         function handleReceivedMessages(request, sender, sendResponse) {
             console.log("Entering handleReceivedMessages : Message received :");
 
-            if (sender.tab) {
-                console.log(`From content script ${request.senderName} (in tab of url=` +
-                    `${sender.tab.url})`);
-            } else {
-                // @tofix: sender.url undefined in chrome for extension pages
-                console.log(`From extension (source=${request.senderName} at url=${sender.url}`);
-            }
+            try {
+                if (sender.tab) {
+                    console.log(`From content script ${request.senderName} (in tab of url=` +
+                        `${sender.tab.url})`);
+                } else {
+                    // @tofix: sender.url undefined in chrome for extension pages
+                    console.log(`From extension (source=${request.senderName} at url=${sender.url}`);
+                }
 
-            if ("enableSharingan" === request.command) {
-                console.log("Executing enableSharingan command with segments ", request.segments);
+                if ("enableSharingan" === request.command) {
+                    console.log("Executing enableSharingan command with segments ", request.segments);
 
-                PlaybackController.enableSharingan(request.segments);
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        message: "enableSharingan command executed: timeouts for all sensitive segments" +
-                            " to skip injected into Netflix playback webpage",
-                    }
-                );
-            } else if ("getContentId" === request.command) {
-                console.log("Executing getContentId command ");
-                let result = PlaybackController.getContentId();
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        message: "getContentId code embedded and executed into Netflix playback webpage",
-                        result: result
-                    }
-                );
-            } else if ("seek" === request.command) {
-                console.log("Executing seek command ");
-                PlaybackController.seek(request.timestamp);
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        message: "Seek code embedded and executed into Netflix playback webpage",
-                    }
-                );
-            } else if ("getDuration" === request.command) {
-                console.log("Executing getDuration command ");
-                let result = PlaybackController.getDuration();
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        message: "Duration of video stream retrieved from playback",
-                        result: result
-                    }
-                );
-            } else if ("skipSegment" === request.command) {
-                console.log("Sending response to skipSegment command ");
-                PlaybackController.setSegmentToSkip(request.segment.startTime, request.segment.endTime);
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        message: "Set range of segment to skip",
-                    }
-                );
-            } else if ("heartbeat" === request.command) {
-                console.log("Sending response to heartbeat request ...")
-                return Promise.resolve(
-                    {
-                        receiverName: "contentScriptNetflixPlaybackController.js",
-                        receiverState: "Alive"
-                    }
-                );
+                    PlaybackController.enableSharingan(request.segments);
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            message: "enableSharingan command executed: timeouts for all sensitive segments" +
+                                " to skip injected into Netflix playback webpage",
+                        }
+                    );
+                } else if ("getContentId" === request.command) {
+                    console.log("Executing getContentId command ");
+                    let result = PlaybackController.getContentId();
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            message: "getContentId code embedded and executed into Netflix playback webpage",
+                            result: result
+                        }
+                    );
+                } else if ("seek" === request.command) {
+                    console.log("Executing seek command ");
+                    PlaybackController.seek(request.timestamp);
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            message: "Seek code embedded and executed into Netflix playback webpage",
+                        }
+                    );
+                } else if ("getDuration" === request.command) {
+                    console.log("Executing getDuration command ");
+                    let result = PlaybackController.getDuration();
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            message: "Duration of video stream retrieved from playback",
+                            result: result
+                        }
+                    );
+                } else if ("skipSegment" === request.command) {
+                    console.log("Sending response to skipSegment command ");
+                    PlaybackController.setSegmentToSkip(request.segment.startTime, request.segment.endTime);
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            message: "Set range of segment to skip",
+                        }
+                    );
+                } else if ("heartbeat" === request.command) {
+                    console.log("Sending response to heartbeat request ...")
+                    return Promise.resolve(
+                        {
+                            receiverName: "contentScriptNetflixPlaybackController.js",
+                            receiverState: "Alive"
+                        }
+                    );
+                }
+            } catch (error) {
+                console.log('%c' + `contentScriptNetflixPlaybackController::handleReceivedMessages() error: ${error.message}`, "color:red;font-weight:bold");
             }
         }
 
@@ -472,9 +480,8 @@
         ============================================================================================
         */
 
-
         browser.runtime.onMessage.addListener(handleReceivedMessages);
     } catch (error) {
-        console.log(`Content script main function error: ${error.message}`);
+        console.log('%c' + `contentScriptNetflixPlaybackController::main function error: ${error.message}`, "color:red;font-weight:bold");
     }
 })();

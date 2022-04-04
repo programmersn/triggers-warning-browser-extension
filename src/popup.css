@@ -1,51 +1,39 @@
-html, body {
+html,
+body {
     width: 400px;
-    height: 500px;
+    height: 450px;
 }
 
 .sharingan-button {
-    margin-top:25% auto;
+    margin-top: 25% auto;
     padding: 5px;
     text-align: center;
     font-size: 1.5em;
+    font-weight: bold;
     cursor: pointer;
+    color: white;
 }
 
 .sharingan-disabled {
-    background-color: blue;
+    background-color: red;
 }
 
-.sharingan-enabled {   
-    background-color: red;
+.sharingan-enabled {
+    background-color: green;
 }
 
 .sharingan-unavailable {
     background-color: silver;
 }
 
-.report-segment-styled {
-    border: 0;
-    line-height: 2.5;
-    padding: 0 20px;
-    font-size: 1rem;
+.report-segment {
+    width: 100%;
+    margin-top: 5% auto;
+    border: none;
+    background-color: black;
+    color: white;
+    padding: 20px;
+    font-size: 1.5em;
+    cursor: pointer;
     text-align: center;
-    color: #fff;
-    text-shadow: 1px 1px 1px #000;
-    border-radius: 10px;
-    background-color: rgba(220, 0, 0, 1);
-    background-image: linear-gradient(to top left,
-                                      rgba(0, 0, 0, .2),
-                                      rgba(0, 0, 0, .2) 30%,
-                                      rgba(0, 0, 0, 0));
-    box-shadow: inset 2px 2px 3px rgba(255, 255, 255, .6),
-                inset -2px -2px 3px rgba(0, 0, 0, .6);
-}
-
-.report-segment-styled:hover {
-    background-color: rgba(255, 0, 0, 1);
-}
-
-.report-segment-styled:active {
-    box-shadow: inset -2px -2px 3px rgba(255, 255, 255, .6),
-                inset 2px 2px 3px rgba(0, 0, 0, .6);
 }

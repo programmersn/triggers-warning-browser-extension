@@ -1,0 +1,38 @@
+{
+    "name": "Untrig",
+    "version": "0.0.1",
+    "description": "Makes watching streaming content relaxing, soothing and enjoyable again !",
+    "manifest_version": 2,
+    "icons": {
+        "96": "/icons/untrig-96.png"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "storage",
+        "webNavigation",
+        "webRequest",
+        "webRequestBlocking",
+        "*://*/?o=*"
+    ],
+    "options_ui": {
+        "page": "/options.html"
+    },
+    "background": {
+        "scripts": [
+            "/background.js",
+            "/browser-polyfill.min.js",
+            "/backgroundSubtitlesFetcher.js"
+        ]
+    },
+    "browser_action": {
+        "browser_style": true,
+        "default_icon": {
+            "32": "/icons/untrig-32.png",
+            "48": "/icons/untrig-48.png"
+        },
+        "default_title": "Untrig",
+        "default_popup": "/popup.html"
+    },
+    "browser_specific_settings": { "gecko": { "id": "untrig.app@gmail.com" } }
+}
